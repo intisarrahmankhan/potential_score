@@ -645,21 +645,6 @@
         </button>
       </form>
 
-      <!-- Supabase Custom Keys Config Accordion -->
-      <details class="text-[11px] text-slate-400 pt-2 border-t border-slate-800" id="supabaseConfigDetails">
-        <summary class="cursor-pointer font-bold text-indigo-400 hover:underline">⚙️ Supabase API Configuration</summary>
-        <div class="mt-2 space-y-2 p-3 rounded-xl bg-[#0B0F19] border border-slate-800">
-          <div>
-            <label class="block text-[9px] font-bold uppercase text-slate-500">Supabase URL</label>
-            <input type="text" id="cfgSupabaseUrl" value="https://qpqfwqdwicyhyboneesq.supabase.co" class="w-full px-2 py-1 text-[11px] rounded bg-[#131B2E] border border-slate-700 text-white font-mono">
-          </div>
-          <div>
-            <label class="block text-[9px] font-bold uppercase text-slate-500">Publishable / Anon Key</label>
-            <input type="password" id="cfgSupabaseKey" placeholder="Paste your sb_publishable_... key here" class="w-full px-2 py-1 text-[11px] rounded bg-[#131B2E] border border-slate-700 text-white font-mono">
-          </div>
-          <button type="button" onclick="saveCustomSupabaseConfig()" class="w-full py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold">Save API Keys</button>
-        </div>
-      </details>
     </div>
   </div>
 
@@ -702,24 +687,21 @@
   </div>
 
   <script>
-    // Supabase Configuration
+    // Supabase Configuration - These will be injected by Vercel during build!
     let SUPABASE_URL = 'https://qpqfwqdwicyhyboneesq.supabase.co';
-    let SUPABASE_ANON_KEY = localStorage.getItem('supabase_anon_key') || '';
+    let SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_PLACEHOLDER';
+    
+    // Fallback to local storage if user had previously entered it manually
+    if (SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_PLACEHOLDER') {
+      SUPABASE_ANON_KEY = localStorage.getItem('supabase_anon_key') || '';
+    }
+
     let supabase = null;
     let currentUser = null;
     let authMode = 'signin';
 
     function initSupabaseClient() {
-      const storedKey = localStorage.getItem('supabase_anon_key');
-      if (storedKey) SUPABASE_ANON_KEY = storedKey;
-      
-      const storedUrl = localStorage.getItem('supabase_url');
-      if (storedUrl) SUPABASE_URL = storedUrl;
-
-      document.getElementById('cfgSupabaseUrl').value = SUPABASE_URL;
-      if (SUPABASE_ANON_KEY) document.getElementById('cfgSupabaseKey').value = SUPABASE_ANON_KEY;
-
-      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_PLACEHOLDER') {
         try {
           supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) {
@@ -728,25 +710,8 @@
       }
     }
 
-    function saveCustomSupabaseConfig() {
-      const url = document.getElementById('cfgSupabaseUrl').value.trim();
-      const key = document.getElementById('cfgSupabaseKey').value.trim();
-      if (url && key) {
-        localStorage.setItem('supabase_url', url);
-        localStorage.setItem('supabase_anon_key', key);
-        SUPABASE_URL = url;
-        SUPABASE_ANON_KEY = key;
-        initSupabaseClient();
-        alert('Supabase credentials saved! Connecting to cloud database...');
-        checkAuthSession();
-      }
-    }
-
     function openAuthModal(mode = 'signin') {
       setAuthMode(mode);
-      if (!SUPABASE_ANON_KEY) {
-        document.getElementById('supabaseConfigDetails').open = true;
-      }
       document.getElementById('authModal').classList.remove('hidden');
     }
 
@@ -788,9 +753,8 @@
 
       if (!supabase) {
         alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-amber-950 text-amber-300 border border-amber-800';
-        alertBox.innerHTML = '⚠️ Please paste your Supabase Publishable Key under ⚙️ Supabase API Configuration below to connect cloud auth!';
+        alertBox.innerHTML = '⚠️ Supabase is not connected! Please add your Supabase URL and Anon Key as Vercel Environment Variables and redeploy.';
         alertBox.classList.remove('hidden');
-        document.getElementById('supabaseConfigDetails').open = true;
         return;
       }
 
