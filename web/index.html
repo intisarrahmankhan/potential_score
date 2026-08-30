@@ -687,21 +687,16 @@
   </div>
 
   <script>
-    // Supabase Configuration - These will be injected by Vercel during build!
+    // Supabase Configuration
     let SUPABASE_URL = 'https://qpqfwqdwicyhyboneesq.supabase.co';
-    let SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_PLACEHOLDER';
+    let SUPABASE_ANON_KEY = 'sb_publishable_dC5bm0SppXuJ47eLfLHZwQ_U4jPCqMf';
     
-    // Fallback to local storage if user had previously entered it manually
-    if (SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_PLACEHOLDER') {
-      SUPABASE_ANON_KEY = localStorage.getItem('supabase_anon_key') || '';
-    }
-
     let supabase = null;
     let currentUser = null;
     let authMode = 'signin';
 
     function initSupabaseClient() {
-      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY_PLACEHOLDER') {
+      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
           supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) {
