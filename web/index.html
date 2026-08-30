@@ -114,6 +114,23 @@
     <!-- Tab 1: Daily Entry Screen -->
     <div id="dailyEntryView" class="space-y-6">
 
+      <!-- Cloud Sync / Auth Banner (Visible when not logged in) -->
+      <div id="unauthBanner" class="p-4 rounded-3xl bg-[#131B2E] border border-indigo-500/40 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-950/80 text-indigo-400 flex items-center justify-center text-lg">
+            🔒
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-white">Private Cloud Sync</h3>
+            <p class="text-xs text-slate-400">Sign in to save your daily logs to Supabase and access them securely across your phone.</p>
+          </div>
+        </div>
+        <button onclick="openAuthModal('signin')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-xs shadow-md transition-all whitespace-nowrap self-start sm:self-auto flex items-center space-x-1.5">
+          <span>🔒</span>
+          <span>Sign In / Create Account</span>
+        </button>
+      </div>
+
       <!-- 1. Main Live Score Header -->
       <div id="mainScoreCard" class="rounded-3xl p-6 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 border border-indigo-900/60 shadow-xl relative overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -668,13 +685,18 @@
         </button>
       </div>
 
-      <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-        <button onclick="resetDefaultHabits()" class="text-[11px] font-bold text-slate-400 hover:text-white">
-          Reset Default Habits
+      <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+        <button onclick="closeHabitModal(); openAuthModal('signin');" class="text-[11px] font-bold text-indigo-400 hover:text-indigo-300">
+          🔒 Account & Cloud Sync
         </button>
-        <button onclick="clearAllTestLogs()" class="text-[11px] font-bold text-rose-400 hover:text-rose-300">
-          🗑️ Clear All Logs (0 Reviews)
-        </button>
+        <div class="flex items-center space-x-3">
+          <button onclick="resetDefaultHabits()" class="text-[11px] font-bold text-slate-400 hover:text-white">
+            Reset Habits
+          </button>
+          <button onclick="clearAllTestLogs()" class="text-[11px] font-bold text-rose-400 hover:text-rose-300">
+            🗑️ Clear Logs
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -842,14 +864,17 @@
       const loginBtn = document.getElementById('navLoginBtn');
       const userBadge = document.getElementById('navUserBadge');
       const userEmail = document.getElementById('navUserEmail');
+      const unauthBanner = document.getElementById('unauthBanner');
 
       if (user) {
         loginBtn.classList.add('hidden');
         userBadge.classList.remove('hidden');
         userEmail.innerText = user.email;
+        if (unauthBanner) unauthBanner.classList.add('hidden');
       } else {
         loginBtn.classList.remove('hidden');
         userBadge.classList.add('hidden');
+        if (unauthBanner) unauthBanner.classList.remove('hidden');
       }
     }
 
