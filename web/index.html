@@ -1696,6 +1696,9 @@
       initScrollStickyObserver();
 
       if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for (let r of regs) r.update();
+        });
         navigator.serviceWorker.register('/sw.js').catch(() => {});
       }
     });
