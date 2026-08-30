@@ -1,0 +1,22 @@
+{
+  "name": "365 Potential Tracker",
+  "short_name": "365 Potential",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#131B2E",
+  "orientation": "portrait",
+  "description": "Daily Potential & Habit Tracker with smart retrospective review and live scoring engine.",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/target.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/target.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

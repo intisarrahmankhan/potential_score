@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>365 Potential Tracker</title>
+  
+  <!-- Mobile PWA Meta Tags -->
+  <meta name="theme-color" content="#131B2E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="365 Potential">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .achievement-glow {
+      box-shadow: 0 0 16px rgba(234, 179, 8, 0.4);
+      border: 1px solid rgba(250, 204, 21, 0.7);
+    }
+    .penalty-glow {
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.35);
+      border: 1px solid rgba(239, 68, 68, 0.6);
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col bg-[#0B0F19] text-slate-100 selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-[#131B2E]/95 backdrop-blur-md border-b border-[#334155]/80">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      <div class="flex justify-between h-16 items-center">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+            <i data-lucide="target" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-indigo-300 bg-clip-text text-transparent">
+              365 Potential
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="switchTab('daily')" id="tabDailyBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            <span>Daily Review</span>
+          </button>
+          <button onclick="switchTab('analytics')" id="tabAnalyticsBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>Analytics & 365</span>
+          </button>
+          <button onclick="openHabitModal()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Manage Rules">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Floating Slim Sticky Potential Score Bar (Triggered ONLY when main score card is scrolled out of view) -->
+  <div id="stickyTopScoreBar" class="fixed top-16 left-0 right-0 z-30 bg-[#131B2E]/95 backdrop-blur-md border-b border-indigo-500/40 shadow-2xl transition-all duration-300 transform -translate-y-full opacity-0 pointer-events-none">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="flex items-baseline space-x-2">
+          <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Potential:</span>
+          <span id="floatingScorePct" class="text-base sm:text-lg font-black text-white">0.0%</span>
+          <span id="floatingScoreFraction" class="text-xs font-bold text-indigo-300">(0/0)</span>
+        </div>
+        <span id="floatingStreakBadge" class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-950/80 text-amber-300 border border-amber-800/60">
+          🎯 &ge; 80%
+        </span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="w-24 sm:w-36 bg-slate-800 rounded-full h-2 overflow-hidden border border-white/10 hidden sm:block">
+          <div id="floatingProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-300" style="width: 0%;"></div>
+        </div>
+        <button onclick="saveDailyReview()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow transition-colors flex items-center space-x-1">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>Save</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Container -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 pb-20">
+    
+    <!-- Tab 1: Daily Entry Screen -->
+    <div id="dailyEntryView" class="space-y-6">
+
+      <!-- 1. Main Live Score Header -->
+      <div id="mainScoreCard" class="rounded-3xl p-6 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 border border-indigo-900/60 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="streakBadge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-950/80 text-amber-400 border border-amber-800/60">
+                🎯 Goal: &ge; 80%
+              </span>
+              <span id="eliteAchievementBadge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-950 text-amber-300 border border-amber-500/60 achievement-glow">
+                ⭐ 90%+ Elite Mastery
+              </span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-1.5" id="currentDateDisplay">
+              Potential Score
+            </h1>
+          </div>
+
+          <input type="date" id="datePickerInput" onchange="onDateChanged(this.value)" class="px-3 py-2 text-xs rounded-xl bg-[#1E293B] border border-[#334155] text-white font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer self-start sm:self-auto">
+        </div>
+
+        <div class="mt-6 pt-5 border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-baseline space-x-3">
+              <span id="livePercentage" class="text-4xl font-black text-white tracking-tight">0.0%</span>
+              <span id="liveFraction" class="text-sm font-bold text-indigo-300">(0/0 criteria met)</span>
+            </div>
+            <div id="penaltyBreakdownText" class="text-[11px] text-slate-400 font-medium">
+              NM (Bad Habit): <span class="text-rose-400 font-bold">Unticked (-25%)</span> • NP (Bad Habit): <span class="text-amber-400 font-bold">Unticked (-15%)</span> • Leisure: <span class="text-emerald-400 font-bold">Safe (&le; 3h)</span>
+            </div>
+          </div>
+
+          <div class="w-full md:w-64 space-y-1.5">
+            <div class="flex justify-between text-xs text-slate-300 font-semibold">
+              <span>Goal: &ge; 80%</span>
+              <span id="progressBarLabel">0 of 0</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2.5 p-0.5 border border-white/10">
+              <div id="liveProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-300" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CORE DISCIPLINE (NM & NP BAD HABITS) - HIDDEN BY DEFAULT UNDER ARROW, UNCHECKED BY DEFAULT -->
+      <div class="rounded-3xl bg-[#131B2E] border border-rose-900/40 overflow-hidden shadow-lg transition-all">
+        <button onclick="toggleStaminaPillarsBlock()" class="w-full p-5 flex items-center justify-between hover:bg-[#1e293b]/60 transition-colors text-left">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-rose-950/70 text-rose-400 flex items-center justify-center font-black">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-extrabold text-white flex items-center space-x-2">
+                <span>Avoid Bad Habits (Discipline Pillars)</span>
+                <span id="staminaHeaderStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-950 text-rose-300 border border-rose-800/60">Unticked: Penalty Active</span>
+              </h2>
+              <p class="text-xs text-slate-400">Click arrow to open. Must be ticked to confirm clean discipline and gain full score.</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2 text-rose-400 font-bold text-xs">
+            <span id="staminaToggleLabel">Show Bad Habits</span>
+            <i data-lucide="chevron-down" id="staminaChevron" class="w-5 h-5 transition-transform duration-300"></i>
+          </div>
+        </button>
+
+        <!-- Hidden by default collapsible content with UNCHECKED checkboxes -->
+        <div id="staminaExpandedContent" class="hidden p-6 pt-2 border-t border-rose-950/60 bg-[#0B0F19]/80 space-y-4">
+          <p class="text-xs text-slate-400 italic">⚠️ If unchecked, failing NM applies a -25% penalty, and failing NP applies a -15% penalty.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- 1. NM (Bad Habit) - Default unchecked -->
+            <label class="p-4 rounded-2xl bg-[#131B2E] border border-[#334155]/80 hover:border-rose-500/50 cursor-pointer transition-all flex items-start justify-between gap-3">
+              <div class="flex items-start space-x-3">
+                <input type="checkbox" id="checkNM" onchange="recalcLiveScores()" class="w-5 h-5 mt-0.5 rounded text-rose-600 bg-slate-800 border-slate-600 focus:ring-rose-500 cursor-pointer">
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-sm font-black text-white">NM (Bad Habit)</span>
+                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-rose-950 text-rose-300">-25% Penalty</span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">Preserves physical stamina & vitality. Tick if you stayed clean yesterday.</p>
+                </div>
+              </div>
+              <span id="badgeNM" class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-950 text-rose-400 border border-rose-800 whitespace-nowrap">
+                Failed ❌ (-25%)
+              </span>
+            </label>
+
+            <!-- 2. NP (Bad Habit) - Default unchecked -->
+            <label class="p-4 rounded-2xl bg-[#131B2E] border border-[#334155]/80 hover:border-amber-500/50 cursor-pointer transition-all flex items-start justify-between gap-3">
+              <div class="flex items-start space-x-3">
+                <input type="checkbox" id="checkNP" onchange="recalcLiveScores()" class="w-5 h-5 mt-0.5 rounded text-amber-600 bg-slate-800 border-slate-600 focus:ring-amber-500 cursor-pointer">
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-sm font-black text-white">NP (Bad Habit)</span>
+                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300">-15% Penalty</span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">Protects dopamine focus & clarity. Tick if you stayed clean yesterday.</p>
+                </div>
+              </div>
+              <span id="badgeNP" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800 whitespace-nowrap">
+                Failed ❌ (-15%)
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Sleep & Recovery Card (Editable Range/Target) -->
+      <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-950/60 text-indigo-400 flex items-center justify-center font-bold">
+              <i data-lucide="moon" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white">Sleep & Recovery</h2>
+              <p class="text-xs text-slate-400">Target Range: <span id="sleepTargetDisplay" class="font-bold text-indigo-300">7.0 - 8.5</span> hrs</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="toggleEditSleepRange()" class="text-[11px] font-bold text-indigo-400 hover:underline">
+              <span id="editSleepBtnText">Edit Target</span>
+            </button>
+            <span id="sleepBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+              Optimal (7.5 hrs)
+            </span>
+          </div>
+        </div>
+
+        <!-- Editable Sleep Range Inputs -->
+        <div id="sleepRangeEditBox" class="hidden p-3.5 rounded-2xl bg-[#0B0F19] border border-indigo-900/60 grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Min Sleep (hrs)</label>
+            <input type="number" step="0.1" id="targetSleepMin" value="7.0" oninput="recalcLiveScores()" class="w-full px-3 py-1.5 text-xs font-bold rounded-xl bg-[#131B2E] border border-[#334155] text-white">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Max Sleep (hrs)</label>
+            <input type="number" step="0.1" id="targetSleepMax" value="8.5" oninput="recalcLiveScores()" class="w-full px-3 py-1.5 text-xs font-bold rounded-xl bg-[#131B2E] border border-[#334155] text-white">
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center space-x-2">
+            <!-- Minus Stepper Button -->
+            <button type="button" onclick="stepSleep(-0.5)" class="w-12 h-12 rounded-2xl bg-[#0B0F19] hover:bg-slate-800 border border-[#334155] text-indigo-400 font-black text-xl flex items-center justify-center transition-colors active:scale-95 shadow-sm" title="Decrease by 0.5h">
+              <i data-lucide="minus" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Sleep Input with pointer-events-none on hours suffix -->
+            <div class="relative flex-1">
+              <input type="number" step="0.1" id="inputSleep" value="7.5" oninput="recalcLiveScores()" placeholder="e.g. 7.5" class="w-full px-4 py-3 rounded-2xl bg-[#0B0F19] border border-[#334155] text-white text-lg font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all">
+              <span class="absolute right-4 top-3.5 text-xs font-bold text-slate-500 pointer-events-none">hours</span>
+            </div>
+
+            <!-- Plus Stepper Button -->
+            <button type="button" onclick="stepSleep(0.5)" class="w-12 h-12 rounded-2xl bg-[#0B0F19] hover:bg-slate-800 border border-[#334155] text-indigo-400 font-black text-xl flex items-center justify-center transition-colors active:scale-95 shadow-sm" title="Increase by 0.5h">
+              <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="flex flex-wrap items-center gap-1.5 pt-1">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mr-1">Quick Select:</span>
+            <button type="button" onclick="setSleepPreset(6.5)" class="px-2.5 py-1 rounded-xl bg-[#0B0F19] hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-400 hover:text-white transition-colors">6.5h</button>
+            <button type="button" onclick="setSleepPreset(7.0)" class="px-2.5 py-1 rounded-xl bg-[#0B0F19] hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-colors">7.0h</button>
+            <button type="button" onclick="setSleepPreset(7.5)" class="px-2.5 py-1 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-700 text-xs font-black text-emerald-300 transition-colors shadow-sm">7.5h (Optimal)</button>
+            <button type="button" onclick="setSleepPreset(8.0)" class="px-2.5 py-1 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-700 text-xs font-black text-emerald-300 transition-colors shadow-sm">8.0h (Optimal)</button>
+            <button type="button" onclick="setSleepPreset(8.5)" class="px-2.5 py-1 rounded-xl bg-[#0B0F19] hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-colors">8.5h</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. FOCUS SPLIT & LEISURE TIME (Study, Work, Leisure Time with Minutes) -->
+      <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-purple-950/60 text-purple-400 flex items-center justify-center font-bold">
+              <i data-lucide="zap" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white">Focus Split & Leisure Time</h2>
+              <p class="text-xs text-slate-400">Study, Work goals and Leisure limit (&le; 3h limit, editable in minutes)</p>
+            </div>
+          </div>
+          <span id="totalFocusBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-indigo-950/80 text-indigo-400 border border-indigo-800/60">
+            Total Focus: 6.0 hrs
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <!-- 1. Study Focus Block -->
+          <div class="p-3.5 rounded-2xl bg-[#0B0F19] border border-[#334155]/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5">
+                <i data-lucide="book-open" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span class="text-xs font-bold text-white">Study Focus</span>
+              </div>
+              <span id="badgeStudy" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400">
+                Pass ✓
+              </span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <div class="flex-1">
+                <label class="block text-[9px] font-bold uppercase text-slate-400 mb-1">Logged (h)</label>
+                <input type="number" step="0.1" id="inputStudy" value="2.0" oninput="recalcLiveScores()" class="w-full px-2.5 py-1.5 rounded-xl bg-[#131B2E] border border-[#334155] text-white font-bold text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              </div>
+              <div class="w-20">
+                <label class="block text-[9px] font-bold uppercase text-slate-400 mb-1">Goal (h)</label>
+                <input type="number" step="0.1" id="targetStudyMin" value="2.0" oninput="recalcLiveScores()" class="w-full px-2.5 py-1.5 rounded-xl bg-[#131B2E] border border-blue-900/60 text-blue-300 font-bold text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-400">Goal: &ge; <span id="studyGoalEcho">2.0</span>h</p>
+          </div>
+
+          <!-- 2. Work Focus Block -->
+          <div class="p-3.5 rounded-2xl bg-[#0B0F19] border border-[#334155]/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5">
+                <i data-lucide="briefcase" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span class="text-xs font-bold text-white">Work Focus</span>
+              </div>
+              <span id="badgeWork" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400">
+                Pass ✓
+              </span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <div class="flex-1">
+                <label class="block text-[9px] font-bold uppercase text-slate-400 mb-1">Logged (h)</label>
+                <input type="number" step="0.1" id="inputWork" value="4.0" oninput="recalcLiveScores()" class="w-full px-2.5 py-1.5 rounded-xl bg-[#131B2E] border border-[#334155] text-white font-bold text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              </div>
+              <div class="w-20">
+                <label class="block text-[9px] font-bold uppercase text-slate-400 mb-1">Goal (h)</label>
+                <input type="number" step="0.1" id="targetWorkMin" value="4.0" oninput="recalcLiveScores()" class="w-full px-2.5 py-1.5 rounded-xl bg-[#131B2E] border border-indigo-900/60 text-indigo-300 font-bold text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-400">Goal: &ge; <span id="workGoalEcho">4.0</span>h</p>
+          </div>
+
+          <!-- 3. Leisure / Quality Time Tracker (Editable in Hours + Minutes, Penalty if > 3h) -->
+          <div class="p-3.5 rounded-2xl bg-[#0B0F19] border border-[#334155]/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5">
+                <i data-lucide="coffee" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span class="text-xs font-bold text-white">Leisure / Quality Time</span>
+              </div>
+              <span id="badgeLeisure" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400">
+                Safe Rest ✓
+              </span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <div class="flex-1">
+                <label class="block text-[9px] font-bold uppercase text-slate-400 mb-1">Hours</label>
+                <input type="number" step="1" id="inputLeisureHours" value="1" min="0" oninput="recalcLiveScores()" class="w-full px-2.5 py-1.5 rounded-xl bg-[#131B2E] border border-[#334155] text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+              </div>
+              <div class="flex-1">
+                <label class="block text-[9px] font-bold uppercase text-slate-400 mb-1">Minutes</label>
+                <input type="number" step="5" id="inputLeisureMinutes" value="0" min="0" max="59" oninput="recalcLiveScores()" class="w-full px-2.5 py-1.5 rounded-xl bg-[#131B2E] border border-[#334155] text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-400">Limit: &le; 3h (Total: <span id="leisureTotalEcho" class="font-bold text-amber-300">1h 0m</span>)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Dynamic Habits Checklist -->
+      <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Daily Disciplines & Health</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="checklistContainer">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- 6. Reflection Notes Card -->
+      <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-3">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Daily Reflection Notes</h2>
+        <textarea id="reflectionNotes" rows="2" placeholder="Why did you succeed or fail today? Friction, coffee timing, deep work focus..." class="w-full px-4 py-3 rounded-2xl bg-[#0B0F19] border border-[#334155] text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+      </div>
+
+      <!-- 7. Save Button -->
+      <button onclick="saveDailyReview()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-base shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center space-x-2">
+        <i data-lucide="check" class="w-5 h-5"></i>
+        <span>Save Daily Review</span>
+      </button>
+
+      <!-- 8. PAST DAYS REVIEW ARCHIVE WITH STREAK SUBSCRIPTS & 90%+ ACHIEVEMENT MARKS -->
+      <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-4 mt-8">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h2 class="text-base font-extrabold text-white flex items-center space-x-2">
+              <i data-lucide="history" class="w-5 h-5 text-indigo-400"></i>
+              <span>Daily Review History & Streaks</span>
+            </h2>
+            <p class="text-xs text-slate-400">Streak days (&ge; 80%) show flame numbers; High-performance days (&gt; 90%) earn the Achievement Star</p>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full bg-[#0B0F19] text-indigo-300 border border-slate-800" id="totalReviewsCountBadge">
+            0 Reviews
+          </span>
+        </div>
+
+        <div class="space-y-3" id="pastReviewsList">
+          <!-- Populated from saved real user data -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tab 2: Analytics & fl_chart Trajectory View -->
+    <div id="analyticsView" class="space-y-6 hidden">
+      
+      <!-- 4 KPI Cards (Dynamically computed from actual logs) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <!-- 1. Current Streak -->
+        <div class="p-5 rounded-3xl bg-[#131B2E] border border-[#334155]/80 space-y-1">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Current Streak</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-black text-white" id="statCurrentStreak">0</span>
+            <span class="text-xs text-slate-500 font-semibold">days &ge; 80%</span>
+          </div>
+          <p class="text-[11px] text-amber-400 font-medium" id="statCurrentStreakLabel">🎯 Log today &ge; 80%</p>
+        </div>
+
+        <!-- 2. Longest Streak -->
+        <div class="p-5 rounded-3xl bg-[#131B2E] border border-[#334155]/80 space-y-1">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Longest Streak</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-black text-white" id="statLongestStreak">0</span>
+            <span class="text-xs text-slate-500 font-semibold">days</span>
+          </div>
+          <p class="text-[11px] text-indigo-400 font-medium">🏆 Peak Record</p>
+        </div>
+
+        <!-- 3. 30-Day Average -->
+        <div class="p-5 rounded-3xl bg-[#131B2E] border border-[#334155]/80 space-y-1">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">30-Day Average</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-black text-white" id="statAvg30">0.0%</span>
+            <span class="text-xs text-slate-500 font-semibold">compliance</span>
+          </div>
+          <p class="text-[11px] text-emerald-400 font-medium" id="statAvg30Label">Rolling 30 days</p>
+        </div>
+
+        <!-- 4. 365 Days Progress with Year Till Now & Month Till Now Averages -->
+        <div class="p-5 rounded-3xl bg-[#131B2E] border border-[#334155]/80 space-y-1">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">365 Progress & Averages</span>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-black text-white" id="statYearAvgScore">0.0%</span>
+            <span class="text-xs text-slate-500 font-semibold">Year Avg</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] pt-0.5">
+            <span class="text-indigo-300 font-semibold">Month: <strong id="statMonthAvgScore">0.0%</strong></span>
+            <span class="text-purple-400 font-medium" id="stat365Count">0/365d</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPANDABLE "FROM THE BEGINNING (ALL-TIME TILL NOW)" JOURNEY BLOCK -->
+      <div class="rounded-3xl bg-[#131B2E] border border-[#334155]/80 overflow-hidden shadow-lg transition-all">
+        <button onclick="toggleAllTimeBlock()" class="w-full p-5 flex items-center justify-between hover:bg-[#1e293b]/60 transition-colors text-left">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-950/80 text-indigo-400 flex items-center justify-center font-bold">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-white flex items-center space-x-2">
+                <span>Journey Metrics: From The Beginning Till Now</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800/60">All-Time Till Now</span>
+              </h3>
+              <p class="text-xs text-slate-400">Click arrow to inspect all-time averages, quality time hours, clean discipline days (NM/NP)</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2 text-indigo-400 font-bold text-xs">
+            <span id="allTimeToggleLabel">Show All-Time</span>
+            <i data-lucide="chevron-down" id="allTimeChevron" class="w-5 h-5 transition-transform duration-300"></i>
+          </div>
+        </button>
+
+        <!-- Collapsible Content -->
+        <div id="allTimeExpandedContent" class="hidden p-6 pt-2 border-t border-[#334155]/80 bg-[#0B0F19]/60 space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <!-- 1. All-Time Average Score -->
+            <div class="p-3.5 rounded-2xl bg-[#131B2E] border border-[#334155] space-y-1">
+              <span class="text-[10px] font-bold uppercase text-slate-400">All-Time Avg Score</span>
+              <div class="text-2xl font-black text-white" id="statAllTimeAvg">0.0%</div>
+              <p class="text-[10px] text-slate-500">Across entire history</p>
+            </div>
+
+            <!-- 2. Clean Discipline Days (NM & NP) -->
+            <div class="p-3.5 rounded-2xl bg-[#131B2E] border border-[#334155] space-y-1">
+              <span class="text-[10px] font-bold uppercase text-slate-400">Clean NM & NP Days</span>
+              <div class="text-2xl font-black text-emerald-400" id="statCleanNMCount">0 <span class="text-xs text-slate-400">/ 0d</span></div>
+              <p class="text-[10px] text-emerald-400 font-medium" id="statCleanNMPct">0% Clean</p>
+            </div>
+
+            <!-- 3. Total Quality Time / Leisure Till Now -->
+            <div class="p-3.5 rounded-2xl bg-[#131B2E] border border-amber-900/50 space-y-1">
+              <span class="text-[10px] font-bold uppercase text-amber-300">Quality Time / Leisure</span>
+              <div class="text-2xl font-black text-amber-400" id="statTotalQualityTime">0.0 <span class="text-xs text-slate-400">hrs</span></div>
+              <p class="text-[10px] text-slate-400" id="statTotalQualityMins">0 mins quality time / rested</p>
+            </div>
+
+            <!-- 4. Total Deep Focus Accumulated -->
+            <div class="p-3.5 rounded-2xl bg-[#131B2E] border border-[#334155] space-y-1">
+              <span class="text-[10px] font-bold uppercase text-slate-400">Study & Work Logged</span>
+              <div class="text-2xl font-black text-purple-300" id="statTotalFocusTime">0.0 <span class="text-xs text-slate-400">hrs</span></div>
+              <p class="text-[10px] text-purple-400">Deep Work Invested</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graph Card with Dropdown Filter & Timeframe Pills -->
+      <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#334155]/80">
+          <div>
+            <h2 class="text-lg font-extrabold text-white flex items-center space-x-2">
+              <i data-lucide="trending-up" class="w-5 h-5 text-indigo-400"></i>
+              <span id="chartMetricTitle">Performance Trajectory</span>
+            </h2>
+            <p class="text-xs text-slate-400">Interactive trajectory visualization from your real logged reviews</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Dropdown Filter: Overall, Sleep, Study, Work -->
+            <select id="metricFilterSelect" onchange="updateChartMetric(this.value)" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-[#0B0F19] border border-[#334155] text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+              <option value="overall">🎯 Overall Potential (%)</option>
+              <option value="sleep">🌙 Sleep Duration (Hours)</option>
+              <option value="study">📚 Study Time (Hours)</option>
+              <option value="work">💼 Work Time (Hours)</option>
+            </select>
+
+            <!-- Time Range Pills -->
+            <div class="inline-flex rounded-xl bg-[#0B0F19] p-1 space-x-1">
+              <button onclick="setChartRange(7)" id="range7Btn" class="px-2.5 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-lg">7D</button>
+              <button onclick="setChartRange(30)" id="range30Btn" class="px-2.5 py-1 text-xs font-bold bg-[#131B2E] text-indigo-400 rounded-lg shadow-sm">30D</button>
+              <button onclick="setChartRange(365)" id="range365Btn" class="px-2.5 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-lg">365D</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative h-72 w-full flex items-center justify-center" id="chartWrapper">
+          <canvas id="flChartCanvas"></canvas>
+          <div id="noChartDataNotice" class="hidden text-center p-6 text-slate-500 text-xs">
+            <i data-lucide="bar-chart-3" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+            No reviews logged for this timeframe yet.<br>Save your daily review to see your performance trajectory curve!
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-[#334155]/80">
+          <span class="flex items-center space-x-2">
+            <span class="w-3 h-0.5 bg-emerald-400 border-t border-dashed border-emerald-400"></span>
+            <span>Target Threshold Benchmark (&ge; 80% / Optimal Hours)</span>
+          </span>
+          <span class="text-indigo-400 font-bold" id="trajectoryIndicator">Ready</span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Habit Rule Modal -->
+  <div id="habitModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-[#131B2E] border border-[#334155] rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h3 class="font-extrabold text-lg text-white">Dynamic Habit Rules</h3>
+          <p class="text-xs text-slate-400">Customize or add new daily disciplines</p>
+        </div>
+        <button onclick="closeHabitModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3 max-h-80 overflow-y-auto pr-1" id="modalHabitsList">
+        <!-- Injected dynamic habits -->
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex gap-2">
+        <input type="text" id="newHabitInput" placeholder="New habit title (e.g. Read 20 pages)" class="flex-1 px-3 py-2 text-xs rounded-xl bg-[#0B0F19] border border-[#334155] text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <button onclick="addNewCustomHabit()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors">
+          Add Rule
+        </button>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+        <button onclick="resetDefaultHabits()" class="text-[11px] font-bold text-slate-400 hover:text-white">
+          Reset Default Habits
+        </button>
+        <button onclick="clearAllTestLogs()" class="text-[11px] font-bold text-rose-400 hover:text-rose-300">
+          🗑️ Clear All Test Logs (0 Reviews)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Storage Keys for persistent real data
+    const STORAGE_KEY_LOGS = 'potential_tracker_prod_logs_v1';
+    const STORAGE_KEY_HABITS = 'potential_tracker_prod_habits_v1';
+
+    // Auto-purge any legacy test/dummy logs from previous session
+    try {
+      localStorage.removeItem('potential_tracker_real_logs_v2');
+      localStorage.removeItem('potential_tracker_logs');
+      localStorage.removeItem('potential_tracker_real_logs');
+    } catch(e){}
+
+    // Default Starting Disciplines Checklist
+    const initialDefaultHabits = [
+      { id: 'h1', title: 'Physical Workout / Exercise', isChecked: false },
+      { id: 'h2', title: 'Hydration (3L+ Clean Water)', isChecked: false },
+      { id: 'h3', title: 'Clean Nutrition & No Sugar', isChecked: false },
+      { id: 'h4', title: 'Read 20+ Pages of Book', isChecked: false },
+      { id: 'h5', title: 'Mindfulness & Meditation', isChecked: false },
+      { id: 'h6', title: 'No Screen 1hr Before Bed', isChecked: false },
+    ];
+
+    // Load Real User Data from LocalStorage (Starts 100% clean with 0 reviews)
+    let userLogs = [];
+    try {
+      const storedLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_LOGS));
+      if (Array.isArray(storedLogs)) userLogs = storedLogs;
+    } catch (e) { userLogs = []; }
+
+    let checklist = [...initialDefaultHabits];
+    try {
+      const storedHabits = JSON.parse(localStorage.getItem(STORAGE_KEY_HABITS));
+      if (Array.isArray(storedHabits) && storedHabits.length > 0) {
+        checklist = storedHabits;
+      }
+    } catch (e) { checklist = [...initialDefaultHabits]; }
+
+    let currentMetric = 'overall';
+    let currentRange = 30;
+    let chartInstance = null;
+    let isSleepRangeEditing = false;
+    let isAllTimeBlockOpen = false;
+    let isStaminaBlockOpen = false;
+
+    // Date setup: Default to yesterday (Current Date - 1), max allowed is Today
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const datePicker = document.getElementById('datePickerInput');
+    datePicker.value = yesterdayStr;
+    datePicker.max = todayStr; // Strictly disallow tomorrow and future dates
+
+    function onDateChanged(val) {
+      if (val > todayStr) {
+        alert('⚠️ You cannot log or edit reviews for future dates! You can only review past days or today.');
+        document.getElementById('datePickerInput').value = todayStr;
+        val = todayStr;
+      }
+
+      const dateObj = new Date(val + 'T12:00:00');
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      const fullDateStr = dateObj.toLocaleDateString('en-US', options);
+
+      const existing = userLogs.find(l => l.rawDate === val);
+      if (existing) {
+        document.getElementById('currentDateDisplay').innerText = `Potential Score (${fullDateStr})`;
+        document.getElementById('inputSleep').value = existing.sleepHours || 7.5;
+        document.getElementById('inputStudy').value = existing.studyHours || 2.0;
+        document.getElementById('inputWork').value = existing.workHours || 4.0;
+        document.getElementById('inputLeisureHours').value = existing.leisureHours !== undefined ? existing.leisureHours : 1;
+        document.getElementById('inputLeisureMinutes').value = existing.leisureMinutes !== undefined ? existing.leisureMinutes : 0;
+        document.getElementById('checkNM').checked = existing.isNM === true;
+        document.getElementById('checkNP').checked = existing.isNP === true;
+        document.getElementById('reflectionNotes').value = existing.notes || '';
+      } else {
+        document.getElementById('currentDateDisplay').innerText = val === todayStr ? `Today's Potential Score` : `Potential Score (${fullDateStr})`;
+        document.getElementById('checkNM').checked = false;
+        document.getElementById('checkNP').checked = false;
+        document.getElementById('reflectionNotes').value = '';
+      }
+      recalcLiveScores();
+    }
+
+    function stepSleep(delta) {
+      const input = document.getElementById('inputSleep');
+      let val = parseFloat(input.value) || 7.0;
+      val = Math.max(0.0, Math.min(24.0, parseFloat((val + delta).toFixed(1))));
+      input.value = val;
+      recalcLiveScores();
+    }
+
+    function setSleepPreset(hrs) {
+      const input = document.getElementById('inputSleep');
+      input.value = hrs;
+      recalcLiveScores();
+    }
+
+    function saveHabitsToStorage() {
+      localStorage.setItem(STORAGE_KEY_HABITS, JSON.stringify(checklist));
+    }
+
+    function saveLogsToStorage() {
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(userLogs));
+    }
+
+    function toggleStaminaPillarsBlock() {
+      isStaminaBlockOpen = !isStaminaBlockOpen;
+      const content = document.getElementById('staminaExpandedContent');
+      const chevron = document.getElementById('staminaChevron');
+      const label = document.getElementById('staminaToggleLabel');
+
+      if (isStaminaBlockOpen) {
+        content.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+        label.innerText = 'Hide Bad Habits';
+      } else {
+        content.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+        label.innerText = 'Show Bad Habits';
+      }
+    }
+
+    function toggleAllTimeBlock() {
+      isAllTimeBlockOpen = !isAllTimeBlockOpen;
+      const content = document.getElementById('allTimeExpandedContent');
+      const chevron = document.getElementById('allTimeChevron');
+      const label = document.getElementById('allTimeToggleLabel');
+
+      if (isAllTimeBlockOpen) {
+        content.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+        label.innerText = 'Hide All-Time';
+      } else {
+        content.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
+        label.innerText = 'Show All-Time';
+      }
+    }
+
+    function toggleEditSleepRange() {
+      isSleepRangeEditing = !isSleepRangeEditing;
+      const box = document.getElementById('sleepRangeEditBox');
+      const btnText = document.getElementById('editSleepBtnText');
+      if (isSleepRangeEditing) {
+        box.classList.remove('hidden');
+        btnText.innerText = 'Done';
+      } else {
+        box.classList.add('hidden');
+        btnText.innerText = 'Edit Target';
+      }
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklistContainer');
+      container.innerHTML = '';
+      checklist.forEach((item, idx) => {
+        const el = document.createElement('label');
+        el.className = `flex items-center justify-between p-3.5 rounded-2xl bg-[#0B0F19] border ${item.isChecked ? 'border-emerald-500/40' : 'border-[#334155]/80'} cursor-pointer hover:border-indigo-500/40 transition-colors`;
+        el.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <input type="checkbox" ${item.isChecked ? 'checked' : ''} onchange="toggleChecklistItem(${idx}, this.checked)" class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600 focus:ring-indigo-500 cursor-pointer">
+            <span class="text-xs font-bold ${item.isChecked ? 'text-white' : 'text-slate-400'}">${item.title}</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${item.isChecked ? 'bg-emerald-950 text-emerald-400' : 'bg-slate-800 text-slate-500'}">
+            ${item.isChecked ? 'Done ✓' : 'Pending'}
+          </span>
+        `;
+        container.appendChild(el);
+      });
+      lucide.createIcons();
+    }
+
+    function toggleChecklistItem(index, val) {
+      checklist[index].isChecked = val;
+      renderChecklist();
+      recalcLiveScores();
+    }
+
+    function renderPastReviews() {
+      const container = document.getElementById('pastReviewsList');
+      container.innerHTML = '';
+
+      const countBadge = document.getElementById('totalReviewsCountBadge');
+      countBadge.innerText = `${userLogs.length} ${userLogs.length === 1 ? 'Review' : 'Reviews'}`;
+
+      if (userLogs.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 rounded-2xl bg-[#0B0F19] border border-dashed border-[#334155] text-center">
+            <i data-lucide="calendar-plus" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+            <p class="text-xs font-bold text-slate-400">No daily reviews recorded yet.</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Submit your first daily review above to start your 365 trajectory!</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      userLogs.forEach((rev, idx) => {
+        const isStreak = rev.pct >= 80.0;
+        const isAchievement = rev.pct >= 90.0;
+
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-2xl bg-[#0B0F19] border ${isAchievement ? 'border-amber-500/40' : (isStreak ? 'border-emerald-500/30' : 'border-[#334155]/80')} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all`;
+
+        card.innerHTML = `
+          <div class="flex items-start space-x-3.5">
+            <!-- Score Badge -->
+            <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center font-black ${isStreak ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/60' : 'bg-slate-800 text-slate-400'}">
+              <span class="text-sm leading-none">${rev.pct.toFixed(0)}%</span>
+              <span class="text-[9px] font-medium text-slate-400 mt-0.5">${rev.score}</span>
+            </div>
+
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-extrabold text-sm text-white">${rev.fullDate || rev.date}</span>
+                
+                <!-- Streak Badge with Lower Font Subscript Number -->
+                ${isStreak && rev.streakCount ? `
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-950/70 text-amber-300 border border-amber-800/50">
+                    <span>🔥</span>
+                    <span class="ml-1 text-[10px] font-semibold opacity-90">${rev.streakCount}</span>
+                  </span>
+                ` : ''}
+
+                <!-- > 90% Achievement Mark -->
+                ${isAchievement ? `
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-yellow-300 border border-yellow-500/50 achievement-glow">
+                    <span class="mr-1">⭐</span>
+                    <span>Achievement ${rev.pct >= 100 ? 'Mastery 100%' : 'Elite'}</span>
+                  </span>
+                ` : ''}
+              </div>
+
+              <p class="text-xs text-slate-400 italic mt-1">${rev.notes || 'Daily review completed.'}</p>
+            </div>
+          </div>
+
+          <button onclick="loadReviewToForm(${idx})" class="self-end sm:self-center px-3 py-1.5 rounded-xl bg-[#131B2E] hover:bg-indigo-950/80 border border-[#334155] text-indigo-300 text-xs font-bold transition-colors">
+            View / Edit
+          </button>
+        `;
+
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function loadReviewToForm(index) {
+      const rev = userLogs[index];
+      if (!rev) return;
+
+      document.getElementById('datePickerInput').value = rev.rawDate || yesterdayStr;
+      document.getElementById('inputSleep').value = rev.sleepHours || 7.5;
+      document.getElementById('inputStudy').value = rev.studyHours || 2.0;
+      document.getElementById('inputWork').value = rev.workHours || 4.0;
+      document.getElementById('inputLeisureHours').value = rev.leisureHours !== undefined ? rev.leisureHours : 1;
+      document.getElementById('inputLeisureMinutes').value = rev.leisureMinutes !== undefined ? rev.leisureMinutes : 0;
+      document.getElementById('checkNM').checked = rev.isNM === true;
+      document.getElementById('checkNP').checked = rev.isNP === true;
+      document.getElementById('reflectionNotes').value = rev.notes || '';
+
+      recalcLiveScores();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function recalcLiveScores() {
+      const isNMPassed = document.getElementById('checkNM').checked;
+      const isNPPassed = document.getElementById('checkNP').checked;
+
+      const sleepVal = parseFloat(document.getElementById('inputSleep').value) || 0;
+      const sleepMin = parseFloat(document.getElementById('targetSleepMin').value) || 7.0;
+      const sleepMax = parseFloat(document.getElementById('targetSleepMax').value) || 8.5;
+
+      const studyVal = parseFloat(document.getElementById('inputStudy').value) || 0;
+      const studyMin = parseFloat(document.getElementById('targetStudyMin').value) || 2.0;
+
+      const workVal = parseFloat(document.getElementById('inputWork').value) || 0;
+      const workMin = parseFloat(document.getElementById('targetWorkMin').value) || 4.0;
+
+      // Leisure Time (Hours + Minutes)
+      const leisureHours = parseInt(document.getElementById('inputLeisureHours').value) || 0;
+      const leisureMinutes = parseInt(document.getElementById('inputLeisureMinutes').value) || 0;
+      const totalLeisureHours = leisureHours + (leisureMinutes / 60.0);
+      const isLeisureOverLimit = totalLeisureHours > 3.0; // Penalty if > 3h
+
+      // Update echo labels
+      document.getElementById('sleepTargetDisplay').innerText = `${sleepMin} - ${sleepMax}`;
+      document.getElementById('studyGoalEcho').innerText = `${studyMin}`;
+      document.getElementById('workGoalEcho').innerText = `${workMin}`;
+      document.getElementById('leisureTotalEcho').innerText = `${leisureHours}h ${leisureMinutes}m`;
+
+      // Smart Validation Logic
+      const isSleepPassed = (sleepVal >= sleepMin && sleepVal <= sleepMax);
+      const isStudyPassed = (studyVal >= studyMin);
+      const isWorkPassed = (workVal >= workMin);
+      const isLeisurePassed = !isLeisureOverLimit;
+
+      // Header Stamina Pill update
+      const staminaHeaderBadge = document.getElementById('staminaHeaderStatusBadge');
+      if (isNMPassed && isNPPassed) {
+        staminaHeaderBadge.innerText = 'Clean Stamina Confirmed ✓';
+        staminaHeaderBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800/60';
+      } else {
+        staminaHeaderBadge.innerText = !isNMPassed ? 'Unticked: NM -25% Penalty' : 'Unticked: NP -15% Penalty';
+        staminaHeaderBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-950 text-rose-300 border border-rose-800/60';
+      }
+
+      // NM & NP Badges
+      const badgeNM = document.getElementById('badgeNM');
+      if (isNMPassed) {
+        badgeNM.innerText = 'Clean ✓';
+        badgeNM.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 whitespace-nowrap';
+      } else {
+        badgeNM.innerText = 'Failed ❌ (-25%)';
+        badgeNM.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-rose-950 text-rose-400 border border-rose-800 whitespace-nowrap';
+      }
+
+      const badgeNP = document.getElementById('badgeNP');
+      if (isNPPassed) {
+        badgeNP.innerText = 'Clean ✓';
+        badgeNP.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 whitespace-nowrap';
+      } else {
+        badgeNP.innerText = 'Failed ❌ (-15%)';
+        badgeNP.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800 whitespace-nowrap';
+      }
+
+      // Sleep badge
+      const sleepBadge = document.getElementById('sleepBadge');
+      if (isSleepPassed) {
+        sleepBadge.innerText = `Optimal (${sleepVal} hrs)`;
+        sleepBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800/60';
+      } else {
+        sleepBadge.innerText = sleepVal < sleepMin ? `Under Target (${sleepVal} hrs)` : `Over Target (${sleepVal} hrs)`;
+        sleepBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-950/80 text-amber-400 border border-amber-800/60';
+      }
+
+      // Focus badges
+      document.getElementById('badgeStudy').innerText = isStudyPassed ? 'Pass ✓' : 'Below Goal';
+      document.getElementById('badgeStudy').className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${isStudyPassed ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}`;
+
+      document.getElementById('badgeWork').innerText = isWorkPassed ? 'Pass ✓' : 'Below Goal';
+      document.getElementById('badgeWork').className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${isWorkPassed ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}`;
+
+      // Leisure badge
+      const badgeLeisure = document.getElementById('badgeLeisure');
+      if (isLeisurePassed) {
+        badgeLeisure.innerText = 'Safe Rest ✓';
+        badgeLeisure.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400';
+      } else {
+        badgeLeisure.innerText = 'Exceeded >3h Limit ⚠️';
+        badgeLeisure.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-950 text-rose-400 border border-rose-800';
+      }
+
+      const totalFocus = studyVal + workVal;
+      document.getElementById('totalFocusBadge').innerText = `Total Focus: ${totalFocus.toFixed(1)} hrs`;
+
+      // LIVE SCORING ENGINE WITH PENALTIES
+      const baseHabitsCount = 3 + checklist.length;
+      let basePassedCount = (isSleepPassed ? 1 : 0) + (isStudyPassed ? 1 : 0) + (isWorkPassed ? 1 : 0);
+      checklist.forEach(item => { if (item.isChecked) basePassedCount++; });
+
+      const totalCriteriaCount = 2 + baseHabitsCount; // NM + NP + Base Items
+      let passedCriteriaCount = (isNMPassed ? 1 : 0) + (isNPPassed ? 1 : 0) + basePassedCount;
+
+      let rawScore = (basePassedCount / baseHabitsCount) * 100.0;
+      
+      // Penalty deductions
+      if (!isNMPassed) rawScore -= 25.0;
+      if (!isNPPassed) rawScore -= 15.0;
+      if (!isSleepPassed) rawScore -= 10.0;
+      if (isLeisureOverLimit) rawScore -= 10.0;
+
+      if (isNMPassed && isNPPassed && isSleepPassed && !isLeisureOverLimit) {
+        rawScore = (passedCriteriaCount / totalCriteriaCount) * 100.0;
+      }
+
+      const finalPct = Math.max(0.0, Math.min(100.0, rawScore)).toFixed(1);
+      const isQualified = parseFloat(finalPct) >= 80.0;
+      const isElite = parseFloat(finalPct) >= 90.0;
+
+      document.getElementById('livePercentage').innerText = `${finalPct}%`;
+      document.getElementById('liveFraction').innerText = `(${passedCriteriaCount}/${totalCriteriaCount} criteria met)`;
+      document.getElementById('progressBarLabel').innerText = `${passedCriteriaCount} of ${totalCriteriaCount}`;
+      document.getElementById('liveProgressBar').style.width = `${finalPct}%`;
+
+      // Update feedback
+      const penaltyText = document.getElementById('penaltyBreakdownText');
+      penaltyText.innerHTML = `
+        NM (Bad Habit): <span class="${isNMPassed ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}">${isNMPassed ? 'Clean ✓' : 'Failed (-25%)'}</span> • 
+        NP (Bad Habit): <span class="${isNPPassed ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}">${isNPPassed ? 'Clean ✓' : 'Failed (-15%)'}</span> • 
+        Leisure: <span class="${!isLeisureOverLimit ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}">${!isLeisureOverLimit ? `${leisureHours}h ${leisureMinutes}m Safe` : `Over Limit (-10%)`}</span>
+      `;
+
+      const streakBadge = document.getElementById('streakBadge');
+      if (isQualified) {
+        streakBadge.innerText = '🔥 Streak Qualified';
+        streakBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60';
+      } else {
+        streakBadge.innerText = '🎯 Goal: >= 80%';
+        streakBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-950/80 text-amber-400 border border-amber-800/60';
+      }
+
+      // Update Sticky Floating Bar elements
+      document.getElementById('floatingScorePct').innerText = `${finalPct}%`;
+      document.getElementById('floatingScoreFraction').innerText = `(${passedCriteriaCount}/${totalCriteriaCount})`;
+      document.getElementById('floatingProgressBar').style.width = `${finalPct}%`;
+
+      const floatingStreakBadge = document.getElementById('floatingStreakBadge');
+      if (isElite) {
+        floatingStreakBadge.innerText = parseFloat(finalPct) >= 100 ? '👑 Mastery 100%' : '⭐ Elite 90%+';
+        floatingStreakBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-950 text-amber-300 border border-amber-500/60 whitespace-nowrap achievement-glow';
+      } else if (isQualified) {
+        floatingStreakBadge.innerText = '🔥 Streak Qualified';
+        floatingStreakBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-800/60 whitespace-nowrap';
+      } else {
+        floatingStreakBadge.innerText = '🎯 Goal: ≥ 80%';
+        floatingStreakBadge.className = 'px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-950 text-amber-300 border border-amber-800/60 whitespace-nowrap';
+      }
+    }
+
+    // Dynamic Real-Time Analytics Calculations from User Logs
+    function updateAnalyticsKpis() {
+      if (userLogs.length === 0) {
+        document.getElementById('statCurrentStreak').innerText = '0';
+        document.getElementById('statCurrentStreakLabel').innerText = '🎯 Log today >= 80%';
+        document.getElementById('statLongestStreak').innerText = '0';
+        document.getElementById('statAvg30').innerText = '0.0%';
+        document.getElementById('statAvg30Label').innerText = 'No logs yet';
+        document.getElementById('statYearAvgScore').innerText = '0.0%';
+        document.getElementById('statMonthAvgScore').innerText = '0.0%';
+        document.getElementById('stat365Count').innerText = '0/365d';
+        document.getElementById('statAllTimeAvg').innerText = '0.0%';
+        document.getElementById('statCleanNMCount').innerHTML = '0 <span class="text-xs text-slate-400">/ 0d</span>';
+        document.getElementById('statCleanNMPct').innerText = '0% Clean';
+        document.getElementById('statTotalQualityTime').innerHTML = '0.0 <span class="text-xs text-slate-400">hrs</span>';
+        document.getElementById('statTotalQualityMins').innerText = '0 mins quality time / rested';
+        document.getElementById('statTotalFocusTime').innerHTML = '0.0 <span class="text-xs text-slate-400">hrs</span>';
+        return;
+      }
+
+      // Calculate Current & Longest Streaks
+      let currentStreak = 0;
+      let longestStreak = 0;
+      let tempStreak = 0;
+
+      // Sort logs by date ascending for streak calculation
+      const sortedAsc = [...userLogs].sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate));
+
+      sortedAsc.forEach((log) => {
+        if (log.pct >= 80.0) {
+          tempStreak++;
+          if (tempStreak > longestStreak) longestStreak = tempStreak;
+        } else {
+          tempStreak = 0;
+        }
+      });
+
+      // Check active current streak from most recent day
+      for (let i = 0; i < userLogs.length; i++) {
+        if (userLogs[i].pct >= 80.0) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+
+      document.getElementById('statCurrentStreak').innerText = currentStreak;
+      document.getElementById('statCurrentStreakLabel').innerText = currentStreak > 0 ? '🔥 Active Streak' : '🎯 Log today >= 80%';
+      document.getElementById('statLongestStreak').innerText = longestStreak;
+
+      // Averages (All time, 30 days, Year, Month)
+      const now = new Date();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const logs30 = userLogs.filter(l => new Date(l.rawDate) >= thirtyDaysAgo);
+      const avg30 = logs30.length > 0 ? (logs30.reduce((acc, l) => acc + l.pct, 0) / logs30.length).toFixed(1) : (userLogs[0].pct).toFixed(1);
+
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      const yearLogs = userLogs.filter(l => new Date(l.rawDate).getFullYear() === currentYear);
+      const yearAvg = yearLogs.length > 0 ? (yearLogs.reduce((acc, l) => acc + l.pct, 0) / yearLogs.length).toFixed(1) : avg30;
+
+      const monthLogs = userLogs.filter(l => {
+        const d = new Date(l.rawDate);
+        return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+      });
+      const monthAvg = monthLogs.length > 0 ? (monthLogs.reduce((acc, l) => acc + l.pct, 0) / monthLogs.length).toFixed(1) : avg30;
+
+      const allTimeAvg = (userLogs.reduce((acc, l) => acc + l.pct, 0) / userLogs.length).toFixed(1);
+
+      document.getElementById('statAvg30').innerText = `${avg30}%`;
+      document.getElementById('statAvg30Label').innerText = `${logs30.length} logs recorded`;
+      document.getElementById('statYearAvgScore').innerText = `${yearAvg}%`;
+      document.getElementById('statMonthAvgScore').innerText = `${monthAvg}%`;
+      document.getElementById('stat365Count').innerText = `${userLogs.length}/365d`;
+      document.getElementById('statAllTimeAvg').innerText = `${allTimeAvg}%`;
+
+      // Clean NM & NP Days Count
+      const cleanCount = userLogs.filter(l => l.isNM === true && l.isNP === true).length;
+      const cleanPct = ((cleanCount / userLogs.length) * 100).toFixed(1);
+      document.getElementById('statCleanNMCount').innerHTML = `${cleanCount} <span class="text-xs text-slate-400">/ ${userLogs.length}d</span>`;
+      document.getElementById('statCleanNMPct').innerText = `${cleanPct}% Clean Stamina`;
+
+      // Total Quality Time (Hours + Minutes)
+      const totalQualityHours = userLogs.reduce((acc, l) => acc + (l.leisureHours || 0) + ((l.leisureMinutes || 0) / 60.0), 0);
+      document.getElementById('statTotalQualityTime').innerHTML = `${totalQualityHours.toFixed(1)} <span class="text-xs text-slate-400">hrs</span>`;
+      document.getElementById('statTotalQualityMins').innerText = `${Math.round(totalQualityHours * 60)} mins quality time / rested`;
+
+      // Total Deep Focus Time (Study + Work)
+      const totalFocusHours = userLogs.reduce((acc, l) => acc + (l.studyHours || 0) + (l.workHours || 0), 0);
+      document.getElementById('statTotalFocusTime').innerHTML = `${totalFocusHours.toFixed(1)} <span class="text-xs text-slate-400">hrs</span>`;
+    }
+
+    function switchTab(tab) {
+      if (tab === 'daily') {
+        document.getElementById('dailyEntryView').classList.remove('hidden');
+        document.getElementById('analyticsView').classList.add('hidden');
+        document.getElementById('tabDailyBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
+        document.getElementById('tabAnalyticsBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5';
+      } else {
+        document.getElementById('dailyEntryView').classList.add('hidden');
+        document.getElementById('analyticsView').classList.remove('hidden');
+        document.getElementById('tabDailyBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5';
+        document.getElementById('tabAnalyticsBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
+        updateAnalyticsKpis();
+        renderFlChart();
+      }
+    }
+
+    // Dynamic Chart rendering from real saved user logs
+    function renderFlChart() {
+      const ctx = document.getElementById('flChartCanvas').getContext('2d');
+      const noDataNotice = document.getElementById('noChartDataNotice');
+
+      if (chartInstance) chartInstance.destroy();
+
+      if (userLogs.length === 0) {
+        document.getElementById('flChartCanvas').classList.add('hidden');
+        noDataNotice.classList.remove('hidden');
+        document.getElementById('trajectoryIndicator').innerText = 'No Data';
+        return;
+      }
+
+      document.getElementById('flChartCanvas').classList.remove('hidden');
+      noDataNotice.classList.add('hidden');
+
+      // Filter user logs by selected timeframe
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - currentRange);
+
+      const filteredLogs = [...userLogs]
+        .filter(l => new Date(l.rawDate) >= cutoffDate)
+        .sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate));
+
+      const logsToPlot = filteredLogs.length > 0 ? filteredLogs : [...userLogs].reverse();
+
+      const labels = [];
+      const data = [];
+      const targetLine = [];
+
+      logsToPlot.forEach(l => {
+        const d = new Date(l.rawDate);
+        labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+
+        if (currentMetric === 'overall') {
+          data.push(l.pct);
+          targetLine.push(80);
+        } else if (currentMetric === 'sleep') {
+          data.push(l.sleepHours || 0);
+          targetLine.push(7.5);
+        } else if (currentMetric === 'study') {
+          data.push(l.studyHours || 0);
+          targetLine.push(2.0);
+        } else if (currentMetric === 'work') {
+          data.push(l.workHours || 0);
+          targetLine.push(4.0);
+        }
+      });
+
+      // Calculate trajectory
+      if (data.length >= 2) {
+        const recent = data[data.length - 1];
+        const prev = data[0];
+        document.getElementById('trajectoryIndicator').innerText = recent >= prev ? 'Trending Upward ↗' : 'Trajectory Steady →';
+      } else {
+        document.getElementById('trajectoryIndicator').innerText = 'Active Tracking';
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Recorded Value',
+              data: data,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.15)',
+              borderWidth: 3,
+              tension: 0.3,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: '#818cf8',
+            },
+            {
+              label: 'Target Benchmark',
+              data: targetLine,
+              borderColor: '#10b981',
+              borderDash: [6, 4],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function updateChartMetric(val) {
+      currentMetric = val;
+      renderFlChart();
+    }
+
+    function setChartRange(days) {
+      currentRange = days;
+      document.getElementById('range7Btn').className = days === 7 ? 'px-2.5 py-1 text-xs font-bold bg-[#131B2E] text-indigo-400 rounded-lg shadow-sm' : 'px-2.5 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-lg';
+      document.getElementById('range30Btn').className = days === 30 ? 'px-2.5 py-1 text-xs font-bold bg-[#131B2E] text-indigo-400 rounded-lg shadow-sm' : 'px-2.5 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-lg';
+      document.getElementById('range365Btn').className = days === 365 ? 'px-2.5 py-1 text-xs font-bold bg-[#131B2E] text-indigo-400 rounded-lg shadow-sm' : 'px-2.5 py-1 text-xs font-semibold text-slate-400 hover:text-white rounded-lg';
+      renderFlChart();
+    }
+
+    function openHabitModal() {
+      document.getElementById('habitModal').classList.remove('hidden');
+      const list = document.getElementById('modalHabitsList');
+      list.innerHTML = '';
+      checklist.forEach((h, i) => {
+        const d = document.createElement('div');
+        d.className = 'flex items-center justify-between p-3 rounded-xl bg-[#0B0F19] border border-[#334155]';
+        d.innerHTML = `
+          <span class="text-xs font-bold text-white">${h.title}</span>
+          <button onclick="removeHabit(${i})" class="text-rose-400 hover:text-rose-300 text-xs font-bold">Remove</button>
+        `;
+        list.appendChild(d);
+      });
+    }
+
+    function closeHabitModal() {
+      document.getElementById('habitModal').classList.add('hidden');
+    }
+
+    function removeHabit(index) {
+      checklist.splice(index, 1);
+      saveHabitsToStorage();
+      openHabitModal();
+      renderChecklist();
+      recalcLiveScores();
+    }
+
+    function addNewCustomHabit() {
+      const input = document.getElementById('newHabitInput');
+      const name = input.value.trim();
+      if (name) {
+        checklist.push({ id: 'h_' + Date.now(), title: name, isChecked: false });
+        input.value = '';
+        saveHabitsToStorage();
+        openHabitModal();
+        renderChecklist();
+        recalcLiveScores();
+      }
+    }
+
+    function saveDailyReview() {
+      const dateVal = document.getElementById('datePickerInput').value || yesterdayStr;
+      
+      // Strict Future Date Guard: Block tomorrow or any future dates
+      if (dateVal > todayStr) {
+        alert('⚠️ Future date error: You cannot log or edit reviews for future dates! Only past days or today can be reviewed.');
+        document.getElementById('datePickerInput').value = todayStr;
+        return;
+      }
+
+      const dateObj = new Date(dateVal + 'T12:00:00');
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      const fullDateStr = dateObj.toLocaleDateString('en-US', options);
+
+      const pct = parseFloat(document.getElementById('livePercentage').innerText);
+      const fraction = document.getElementById('liveFraction').innerText.replace('(', '').replace(' criteria met)', '');
+      const notes = document.getElementById('reflectionNotes').value.trim();
+      
+      const isNM = document.getElementById('checkNM').checked;
+      const isNP = document.getElementById('checkNP').checked;
+      const sleepHours = parseFloat(document.getElementById('inputSleep').value) || 0;
+      const studyHours = parseFloat(document.getElementById('inputStudy').value) || 0;
+      const workHours = parseFloat(document.getElementById('inputWork').value) || 0;
+      const leisureHours = parseInt(document.getElementById('inputLeisureHours').value) || 0;
+      const leisureMinutes = parseInt(document.getElementById('inputLeisureMinutes').value) || 0;
+
+      // Check if entry already exists for this date to update instead of duplicate
+      const existingIdx = userLogs.findIndex(l => l.rawDate === dateVal);
+
+      const reviewRecord = {
+        rawDate: dateVal,
+        date: dateVal,
+        fullDate: fullDateStr,
+        score: fraction,
+        pct: pct,
+        isNM: isNM,
+        isNP: isNP,
+        sleepHours: sleepHours,
+        studyHours: studyHours,
+        workHours: workHours,
+        leisureHours: leisureHours,
+        leisureMinutes: leisureMinutes,
+        notes: notes,
+        streakCount: pct >= 80 ? (userLogs.length + 1) : null,
+      };
+
+      if (existingIdx >= 0) {
+        userLogs[existingIdx] = reviewRecord;
+      } else {
+        userLogs.unshift(reviewRecord);
+      }
+
+      saveLogsToStorage();
+      renderPastReviews();
+      updateAnalyticsKpis();
+
+      alert(`Review saved for ${fullDateStr}! Daily Potential Score: ${pct}% ${pct >= 90 ? '⭐ Achievement Unlocked!' : (pct >= 80 ? '🔥 Streak Qualified!' : '')}`);
+    }
+
+    function resetDefaultHabits() {
+      if (confirm('Reset habits to the default 6 disciplines?')) {
+        checklist = [...initialDefaultHabits];
+        saveHabitsToStorage();
+        openHabitModal();
+        renderChecklist();
+        recalcLiveScores();
+      }
+    }
+
+    function clearAllTestLogs() {
+      if (confirm('Are you sure you want to delete ALL logged daily reviews and start fresh with 0 reviews?')) {
+        userLogs = [];
+        localStorage.removeItem(STORAGE_KEY_LOGS);
+        renderPastReviews();
+        updateAnalyticsKpis();
+        closeHabitModal();
+        alert('All test logs cleared! Starting fresh from 0 reviews.');
+      }
+    }
+
+    // Scroll listener: Smoothly reveals the sticky top score bar when main score card is scrolled out of view
+    function initScrollStickyObserver() {
+      const mainScoreCard = document.getElementById('mainScoreCard');
+      const stickyTopScoreBar = document.getElementById('stickyTopScoreBar');
+
+      function handleScroll() {
+        if (!mainScoreCard || !stickyTopScoreBar) return;
+        const rect = mainScoreCard.getBoundingClientRect();
+        // If bottom of main score card passes under navbar (height 64px)
+        if (rect.bottom < 64) {
+          stickyTopScoreBar.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+          stickyTopScoreBar.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+        } else {
+          stickyTopScoreBar.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+          stickyTopScoreBar.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+        }
+      }
+
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      handleScroll();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderChecklist();
+      renderPastReviews();
+      recalcLiveScores();
+      updateAnalyticsKpis();
+      initScrollStickyObserver();
+      lucide.createIcons();
+
+      // Register PWA Service Worker for Mobile App Installation
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
