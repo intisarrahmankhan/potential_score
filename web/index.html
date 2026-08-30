@@ -18,6 +18,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
     body {
@@ -39,7 +42,7 @@
   <!-- Top Navigation Bar -->
   <header class="sticky top-0 z-40 bg-[#131B2E]/95 backdrop-blur-md border-b border-[#334155]/80">
     <div class="max-w-5xl mx-auto px-4 sm:px-6">
-      <div class="flex justify-between h-16 items-center">
+      <div class="flex justify-between h-16 items-center gap-2">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
             <i data-lucide="target" class="w-5 h-5"></i>
@@ -52,13 +55,25 @@
         </div>
 
         <div class="flex items-center space-x-2">
-          <button onclick="switchTab('daily')" id="tabDailyBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5">
+          <!-- Auth Pill in Header -->
+          <div id="authNavCapsule" class="flex items-center">
+            <button onclick="openAuthModal('signin')" id="navLoginBtn" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow transition-all flex items-center space-x-1.5">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              <span>Sign In</span>
+            </button>
+            <div id="navUserBadge" class="hidden flex items-center space-x-2 bg-[#0B0F19] border border-indigo-900/80 px-2.5 py-1 rounded-xl">
+              <span class="text-xs font-bold text-indigo-300 max-w-[120px] sm:max-w-[180px] truncate" id="navUserEmail">user@example.com</span>
+              <button onclick="handleSignOut()" class="text-[10px] font-bold text-rose-400 hover:text-rose-300 ml-1">Sign Out</button>
+            </div>
+          </div>
+
+          <button onclick="switchTab('daily')" id="tabDailyBtn" class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5">
             <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-            <span>Daily Review</span>
+            <span class="hidden sm:inline">Daily Review</span>
           </button>
-          <button onclick="switchTab('analytics')" id="tabAnalyticsBtn" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5">
+          <button onclick="switchTab('analytics')" id="tabAnalyticsBtn" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5">
             <i data-lucide="trending-up" class="w-4 h-4"></i>
-            <span>Analytics & 365</span>
+            <span class="hidden sm:inline">Analytics</span>
           </button>
           <button onclick="openHabitModal()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Manage Rules">
             <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
@@ -165,7 +180,7 @@
 
         <!-- Hidden by default collapsible content with UNCHECKED checkboxes -->
         <div id="staminaExpandedContent" class="hidden p-6 pt-2 border-t border-rose-950/60 bg-[#0B0F19]/80 space-y-4">
-          <p class="text-xs text-slate-400 italic">⚠️ If unchecked, failing NM applies a -25% penalty, and failing NP applies a -15% penalty.</p>
+          <p class="text-xs text-slate-400 italic">⚠️ If unchecked, failing Bad Habit 1 applies a -25% penalty, and failing Bad Habit 2 applies a -15% penalty.</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- 1. NM (Bad Habit) - Default unchecked -->
             <label class="p-4 rounded-2xl bg-[#131B2E] border border-[#334155]/80 hover:border-rose-500/50 cursor-pointer transition-all flex items-start justify-between gap-3">
@@ -395,7 +410,7 @@
               <i data-lucide="history" class="w-5 h-5 text-indigo-400"></i>
               <span>Daily Review History & Streaks</span>
             </h2>
-            <p class="text-xs text-slate-400">Streak days (&ge; 80%) show flame numbers; High-performance days (&gt; 90%) earn the Achievement Star</p>
+            <p class="text-xs text-slate-400">Private account history: streak days (&ge; 80%) show flame numbers; Mastery days (&gt; 90%) earn stars</p>
           </div>
           <span class="text-xs font-bold px-3 py-1 rounded-full bg-[#0B0F19] text-indigo-300 border border-slate-800" id="totalReviewsCountBadge">
             0 Reviews
@@ -412,7 +427,7 @@
     <!-- Tab 2: Analytics & fl_chart Trajectory View -->
     <div id="analyticsView" class="space-y-6 hidden">
       
-      <!-- 4 KPI Cards (Dynamically computed from actual logs) -->
+      <!-- 4 KPI Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- 1. Current Streak -->
         <div class="p-5 rounded-3xl bg-[#131B2E] border border-[#334155]/80 space-y-1">
@@ -444,7 +459,7 @@
           <p class="text-[11px] text-emerald-400 font-medium" id="statAvg30Label">Rolling 30 days</p>
         </div>
 
-        <!-- 4. 365 Days Progress with Year Till Now & Month Till Now Averages -->
+        <!-- 4. 365 Days Progress -->
         <div class="p-5 rounded-3xl bg-[#131B2E] border border-[#334155]/80 space-y-1">
           <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">365 Progress & Averages</span>
           <div class="flex items-baseline space-x-2">
@@ -563,6 +578,71 @@
 
   </main>
 
+  <!-- AUTH / LOGIN / SIGNUP MODAL (PRIVATE ACCOUNT ISOLATION) -->
+  <div id="authModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-[#131B2E] border border-[#334155] rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-base text-white" id="authModalTitle">Sign In to Your Account</h3>
+            <p class="text-[11px] text-slate-400">Keep your habits and reviews 100% private</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- Auth Switcher Tabs -->
+      <div class="grid grid-cols-2 p-1 rounded-xl bg-[#0B0F19] border border-slate-800">
+        <button type="button" onclick="setAuthMode('signin')" id="authTabSignIn" class="py-1.5 text-xs font-black rounded-lg bg-indigo-600 text-white shadow transition-all">Sign In</button>
+        <button type="button" onclick="setAuthMode('signup')" id="authTabSignUp" class="py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">Create Account</button>
+      </div>
+
+      <!-- Error / Success Alert -->
+      <div id="authAlertBox" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3.5">
+        <div id="authFullNameField" class="hidden">
+          <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Full Name</label>
+          <input type="text" id="authFullNameInput" placeholder="John Doe" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0B0F19] border border-[#334155] text-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Email Address</label>
+          <input type="email" required id="authEmailInput" placeholder="you@example.com" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0B0F19] border border-[#334155] text-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Password</label>
+          <input type="password" required minlength="6" id="authPasswordInput" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-[#0B0F19] border border-[#334155] text-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <button type="submit" id="authSubmitBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-black text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center space-x-1.5">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span id="authSubmitBtnText">Sign In</span>
+        </button>
+      </form>
+
+      <!-- Supabase Custom Keys Config Accordion -->
+      <details class="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+        <summary class="cursor-pointer font-bold text-indigo-400 hover:underline">⚙️ Supabase API Configuration</summary>
+        <div class="mt-2 space-y-2 p-3 rounded-xl bg-[#0B0F19] border border-slate-800">
+          <div>
+            <label class="block text-[9px] font-bold uppercase text-slate-500">Supabase URL</label>
+            <input type="text" id="cfgSupabaseUrl" value="https://qpqfwqdwicyhyboneesq.supabase.co" class="w-full px-2 py-1 text-[11px] rounded bg-[#131B2E] border border-slate-700 text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-[9px] font-bold uppercase text-slate-500">Publishable / Anon Key</label>
+            <input type="password" id="cfgSupabaseKey" placeholder="sb_publishable_..." class="w-full px-2 py-1 text-[11px] rounded bg-[#131B2E] border border-slate-700 text-white font-mono">
+          </div>
+          <button type="button" onclick="saveCustomSupabaseConfig()" class="w-full py-1 rounded bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold">Save API Keys</button>
+        </div>
+      </details>
+    </div>
+  </div>
+
   <!-- Habit Rule Modal -->
   <div id="habitModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-[#131B2E] border border-[#334155] rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
@@ -590,23 +670,186 @@
           Reset Default Habits
         </button>
         <button onclick="clearAllTestLogs()" class="text-[11px] font-bold text-rose-400 hover:text-rose-300">
-          🗑️ Clear All Test Logs (0 Reviews)
+          🗑️ Clear All Logs (0 Reviews)
         </button>
       </div>
     </div>
   </div>
 
   <script>
-    // Storage Keys for persistent real data
-    const STORAGE_KEY_LOGS = 'potential_tracker_prod_logs_v1';
-    const STORAGE_KEY_HABITS = 'potential_tracker_prod_habits_v1';
+    // Supabase Configuration
+    let SUPABASE_URL = 'https://qpqfwqdwicyhyboneesq.supabase.co';
+    let SUPABASE_ANON_KEY = localStorage.getItem('supabase_anon_key') || '';
+    let supabase = null;
+    let currentUser = null;
+    let authMode = 'signin';
 
-    // Auto-purge any legacy test/dummy logs from previous session
-    try {
-      localStorage.removeItem('potential_tracker_real_logs_v2');
-      localStorage.removeItem('potential_tracker_logs');
-      localStorage.removeItem('potential_tracker_real_logs');
-    } catch(e){}
+    function initSupabaseClient() {
+      const storedKey = localStorage.getItem('supabase_anon_key');
+      if (storedKey) SUPABASE_ANON_KEY = storedKey;
+      
+      const storedUrl = localStorage.getItem('supabase_url');
+      if (storedUrl) SUPABASE_URL = storedUrl;
+
+      document.getElementById('cfgSupabaseUrl').value = SUPABASE_URL;
+      if (SUPABASE_ANON_KEY) document.getElementById('cfgSupabaseKey').value = SUPABASE_ANON_KEY;
+
+      if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+          console.warn('Supabase initialization failed:', e);
+        }
+      }
+    }
+
+    function saveCustomSupabaseConfig() {
+      const url = document.getElementById('cfgSupabaseUrl').value.trim();
+      const key = document.getElementById('cfgSupabaseKey').value.trim();
+      if (url && key) {
+        localStorage.setItem('supabase_url', url);
+        localStorage.setItem('supabase_anon_key', key);
+        SUPABASE_URL = url;
+        SUPABASE_ANON_KEY = key;
+        initSupabaseClient();
+        alert('Supabase API credentials saved! Checking session...');
+        checkAuthSession();
+      }
+    }
+
+    function openAuthModal(mode = 'signin') {
+      setAuthMode(mode);
+      document.getElementById('authModal').classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      const title = document.getElementById('authModalTitle');
+      const submitText = document.getElementById('authSubmitBtnText');
+      const fullNameField = document.getElementById('authFullNameField');
+      const tabSignIn = document.getElementById('authTabSignIn');
+      const tabSignUp = document.getElementById('authTabSignUp');
+      const alertBox = document.getElementById('authAlertBox');
+      alertBox.classList.add('hidden');
+
+      if (mode === 'signup') {
+        title.innerText = 'Create Your Private Account';
+        submitText.innerText = 'Create Account';
+        fullNameField.classList.remove('hidden');
+        tabSignUp.className = 'py-1.5 text-xs font-black rounded-lg bg-indigo-600 text-white shadow transition-all';
+        tabSignIn.className = 'py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all';
+      } else {
+        title.innerText = 'Sign In to Your Account';
+        submitText.innerText = 'Sign In';
+        fullNameField.classList.add('hidden');
+        tabSignIn.className = 'py-1.5 text-xs font-black rounded-lg bg-indigo-600 text-white shadow transition-all';
+        tabSignUp.className = 'py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all';
+      }
+    }
+
+    async function handleAuthSubmit(event) {
+      event.preventDefault();
+      const alertBox = document.getElementById('authAlertBox');
+      const email = document.getElementById('authEmailInput').value.trim();
+      const password = document.getElementById('authPasswordInput').value;
+      const fullName = document.getElementById('authFullNameInput').value.trim();
+
+      if (!supabase) {
+        alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-amber-950 text-amber-300 border border-amber-800';
+        alertBox.innerHTML = '⚠️ Please enter your Supabase Publishable Key under the ⚙️ API Configuration below to connect cloud auth!';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-indigo-950 text-indigo-300 border border-indigo-800';
+      alertBox.innerText = 'Processing...';
+      alertBox.classList.remove('hidden');
+
+      try {
+        if (authMode === 'signup') {
+          const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: { data: { full_name: fullName } }
+          });
+          if (error) throw error;
+          alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800';
+          alertBox.innerText = 'Account created successfully! Logging you in...';
+          currentUser = data.user;
+          updateAuthUI(data.user);
+          await loadUserData();
+          setTimeout(() => closeAuthModal(), 1200);
+        } else {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+          if (error) throw error;
+          alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800';
+          alertBox.innerText = 'Welcome back! Loading your private logs...';
+          currentUser = data.user;
+          updateAuthUI(data.user);
+          await loadUserData();
+          setTimeout(() => closeAuthModal(), 1000);
+        }
+      } catch (err) {
+        alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-rose-950 text-rose-300 border border-rose-800';
+        alertBox.innerText = err.message || 'Authentication error. Please check your credentials.';
+      }
+    }
+
+    async function handleSignOut() {
+      if (confirm('Are you sure you want to sign out from this device?')) {
+        if (supabase) await supabase.auth.signOut();
+        currentUser = null;
+        updateAuthUI(null);
+        userLogs = [];
+        checklist = [...initialDefaultHabits];
+        renderPastReviews();
+        renderChecklist();
+        recalcLiveScores();
+        updateAnalyticsKpis();
+        alert('Signed out. Your private data is safely locked.');
+      }
+    }
+
+    async function checkAuthSession() {
+      if (!supabase) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          updateAuthUI(session.user);
+          await loadUserData();
+        } else {
+          updateAuthUI(null);
+        }
+      } catch(e){}
+    }
+
+    function updateAuthUI(user) {
+      const loginBtn = document.getElementById('navLoginBtn');
+      const userBadge = document.getElementById('navUserBadge');
+      const userEmail = document.getElementById('navUserEmail');
+
+      if (user) {
+        loginBtn.classList.add('hidden');
+        userBadge.classList.remove('hidden');
+        userEmail.innerText = user.email;
+      } else {
+        loginBtn.classList.remove('hidden');
+        userBadge.classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    // Storage Keys for persistent real data
+    const getStorageKeyLogs = () => currentUser ? `potential_tracker_user_${currentUser.id}_logs` : 'potential_tracker_guest_logs';
+    const getStorageKeyHabits = () => currentUser ? `potential_tracker_user_${currentUser.id}_habits` : 'potential_tracker_guest_habits';
 
     // Default Starting Disciplines Checklist
     const initialDefaultHabits = [
@@ -618,27 +861,66 @@
       { id: 'h6', title: 'No Screen 1hr Before Bed', isChecked: false },
     ];
 
-    // Load Real User Data from LocalStorage (Starts 100% clean with 0 reviews)
     let userLogs = [];
-    try {
-      const storedLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_LOGS));
-      if (Array.isArray(storedLogs)) userLogs = storedLogs;
-    } catch (e) { userLogs = []; }
-
     let checklist = [...initialDefaultHabits];
-    try {
-      const storedHabits = JSON.parse(localStorage.getItem(STORAGE_KEY_HABITS));
-      if (Array.isArray(storedHabits) && storedHabits.length > 0) {
-        checklist = storedHabits;
-      }
-    } catch (e) { checklist = [...initialDefaultHabits]; }
-
     let currentMetric = 'overall';
     let currentRange = 30;
     let chartInstance = null;
     let isSleepRangeEditing = false;
     let isAllTimeBlockOpen = false;
     let isStaminaBlockOpen = false;
+
+    // Load User Data from Supabase & LocalStorage
+    async function loadUserData() {
+      // 1. Load from local cache first
+      try {
+        const localLogs = JSON.parse(localStorage.getItem(getStorageKeyLogs()));
+        if (Array.isArray(localLogs)) userLogs = localLogs;
+        else userLogs = [];
+
+        const localHabits = JSON.parse(localStorage.getItem(getStorageKeyHabits()));
+        if (Array.isArray(localHabits) && localHabits.length > 0) checklist = localHabits;
+        else checklist = [...initialDefaultHabits];
+      } catch(e) { userLogs = []; checklist = [...initialDefaultHabits]; }
+
+      // 2. If authenticated to Supabase, sync from cloud database
+      if (supabase && currentUser) {
+        try {
+          const { data: cloudLogs } = await supabase
+            .from('daily_logs')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('log_date', { ascending: false });
+
+          if (cloudLogs && Array.isArray(cloudLogs)) {
+            userLogs = cloudLogs.map(l => ({
+              rawDate: l.log_date,
+              date: l.log_date,
+              fullDate: new Date(l.log_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+              score: l.score_fraction,
+              pct: l.score_percentage,
+              isNM: true,
+              isNP: true,
+              sleepHours: l.sleep_hours,
+              studyHours: l.study_hours,
+              workHours: l.work_hours,
+              leisureHours: 1,
+              leisureMinutes: 0,
+              notes: l.reflection_notes || '',
+              streakCount: l.is_streak_qualified ? 1 : null,
+            }));
+            localStorage.setItem(getStorageKeyLogs(), JSON.stringify(userLogs));
+          }
+        } catch (e) {
+          console.warn('Cloud sync error:', e);
+        }
+      }
+
+      renderPastReviews();
+      renderChecklist();
+      recalcLiveScores();
+      updateAnalyticsKpis();
+    }
 
     // Date setup: Default to yesterday (Current Date - 1), max allowed is Today
     const today = new Date();
@@ -697,11 +979,11 @@
     }
 
     function saveHabitsToStorage() {
-      localStorage.setItem(STORAGE_KEY_HABITS, JSON.stringify(checklist));
+      localStorage.setItem(getStorageKeyHabits(), JSON.stringify(checklist));
     }
 
     function saveLogsToStorage() {
-      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(userLogs));
+      localStorage.setItem(getStorageKeyLogs(), JSON.stringify(userLogs));
     }
 
     function toggleStaminaPillarsBlock() {
@@ -789,7 +1071,7 @@
           <div class="p-8 rounded-2xl bg-[#0B0F19] border border-dashed border-[#334155] text-center">
             <i data-lucide="calendar-plus" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
             <p class="text-xs font-bold text-slate-400">No daily reviews recorded yet.</p>
-            <p class="text-[11px] text-slate-500 mt-0.5">Submit your first daily review above to start your 365 trajectory!</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">${currentUser ? 'Your private account is ready. Submit your review above!' : 'Sign in to sync across your phone and keep your reviews 100% private.'}</p>
           </div>
         `;
         lucide.createIcons();
@@ -1044,7 +1326,6 @@
       let longestStreak = 0;
       let tempStreak = 0;
 
-      // Sort logs by date ascending for streak calculation
       const sortedAsc = [...userLogs].sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate));
 
       sortedAsc.forEach((log) => {
@@ -1056,7 +1337,6 @@
         }
       });
 
-      // Check active current streak from most recent day
       for (let i = 0; i < userLogs.length; i++) {
         if (userLogs[i].pct >= 80.0) {
           currentStreak++;
@@ -1069,7 +1349,6 @@
       document.getElementById('statCurrentStreakLabel').innerText = currentStreak > 0 ? '🔥 Active Streak' : '🎯 Log today >= 80%';
       document.getElementById('statLongestStreak').innerText = longestStreak;
 
-      // Averages (All time, 30 days, Year, Month)
       const now = new Date();
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -1098,18 +1377,15 @@
       document.getElementById('stat365Count').innerText = `${userLogs.length}/365d`;
       document.getElementById('statAllTimeAvg').innerText = `${allTimeAvg}%`;
 
-      // Clean NM & NP Days Count
       const cleanCount = userLogs.filter(l => l.isNM === true && l.isNP === true).length;
       const cleanPct = ((cleanCount / userLogs.length) * 100).toFixed(1);
       document.getElementById('statCleanNMCount').innerHTML = `${cleanCount} <span class="text-xs text-slate-400">/ ${userLogs.length}d</span>`;
       document.getElementById('statCleanNMPct').innerText = `${cleanPct}% Clean Stamina`;
 
-      // Total Quality Time (Hours + Minutes)
       const totalQualityHours = userLogs.reduce((acc, l) => acc + (l.leisureHours || 0) + ((l.leisureMinutes || 0) / 60.0), 0);
       document.getElementById('statTotalQualityTime').innerHTML = `${totalQualityHours.toFixed(1)} <span class="text-xs text-slate-400">hrs</span>`;
       document.getElementById('statTotalQualityMins').innerText = `${Math.round(totalQualityHours * 60)} mins quality time / rested`;
 
-      // Total Deep Focus Time (Study + Work)
       const totalFocusHours = userLogs.reduce((acc, l) => acc + (l.studyHours || 0) + (l.workHours || 0), 0);
       document.getElementById('statTotalFocusTime').innerHTML = `${totalFocusHours.toFixed(1)} <span class="text-xs text-slate-400">hrs</span>`;
     }
@@ -1118,19 +1394,18 @@
       if (tab === 'daily') {
         document.getElementById('dailyEntryView').classList.remove('hidden');
         document.getElementById('analyticsView').classList.add('hidden');
-        document.getElementById('tabDailyBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
-        document.getElementById('tabAnalyticsBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5';
+        document.getElementById('tabDailyBtn').className = 'px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
+        document.getElementById('tabAnalyticsBtn').className = 'px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5';
       } else {
         document.getElementById('dailyEntryView').classList.add('hidden');
         document.getElementById('analyticsView').classList.remove('hidden');
-        document.getElementById('tabDailyBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5';
-        document.getElementById('tabAnalyticsBtn').className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
+        document.getElementById('tabDailyBtn').className = 'px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5';
+        document.getElementById('tabAnalyticsBtn').className = 'px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
         updateAnalyticsKpis();
         renderFlChart();
       }
     }
 
-    // Dynamic Chart rendering from real saved user logs
     function renderFlChart() {
       const ctx = document.getElementById('flChartCanvas').getContext('2d');
       const noDataNotice = document.getElementById('noChartDataNotice');
@@ -1147,7 +1422,6 @@
       document.getElementById('flChartCanvas').classList.remove('hidden');
       noDataNotice.classList.add('hidden');
 
-      // Filter user logs by selected timeframe
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - currentRange);
 
@@ -1180,7 +1454,6 @@
         }
       });
 
-      // Calculate trajectory
       if (data.length >= 2) {
         const recent = data[data.length - 1];
         const prev = data[0];
@@ -1283,10 +1556,9 @@
       }
     }
 
-    function saveDailyReview() {
+    async function saveDailyReview() {
       const dateVal = document.getElementById('datePickerInput').value || yesterdayStr;
       
-      // Strict Future Date Guard: Block tomorrow or any future dates
       if (dateVal > todayStr) {
         alert('⚠️ Future date error: You cannot log or edit reviews for future dates! Only past days or today can be reviewed.');
         document.getElementById('datePickerInput').value = todayStr;
@@ -1309,7 +1581,6 @@
       const leisureHours = parseInt(document.getElementById('inputLeisureHours').value) || 0;
       const leisureMinutes = parseInt(document.getElementById('inputLeisureMinutes').value) || 0;
 
-      // Check if entry already exists for this date to update instead of duplicate
       const existingIdx = userLogs.findIndex(l => l.rawDate === dateVal);
 
       const reviewRecord = {
@@ -1339,6 +1610,27 @@
       renderPastReviews();
       updateAnalyticsKpis();
 
+      // Cloud Sync to Supabase PostgreSQL
+      if (supabase && currentUser) {
+        try {
+          await supabase.from('daily_logs').upsert({
+            user_id: currentUser.id,
+            log_date: dateVal,
+            score_fraction: fraction,
+            score_percentage: pct,
+            is_streak_qualified: pct >= 80.0,
+            study_hours: studyHours,
+            work_hours: workHours,
+            learn_hours: 1.0,
+            sleep_hours: sleepHours,
+            reflection_notes: notes,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id,log_date' });
+        } catch (err) {
+          console.warn('Supabase cloud upsert:', err);
+        }
+      }
+
       alert(`Review saved for ${fullDateStr}! Daily Potential Score: ${pct}% ${pct >= 90 ? '⭐ Achievement Unlocked!' : (pct >= 80 ? '🔥 Streak Qualified!' : '')}`);
     }
 
@@ -1355,15 +1647,14 @@
     function clearAllTestLogs() {
       if (confirm('Are you sure you want to delete ALL logged daily reviews and start fresh with 0 reviews?')) {
         userLogs = [];
-        localStorage.removeItem(STORAGE_KEY_LOGS);
+        localStorage.removeItem(getStorageKeyLogs());
         renderPastReviews();
         updateAnalyticsKpis();
         closeHabitModal();
-        alert('All test logs cleared! Starting fresh from 0 reviews.');
+        alert('All logs cleared! Starting fresh from 0 reviews.');
       }
     }
 
-    // Scroll listener: Smoothly reveals the sticky top score bar when main score card is scrolled out of view
     function initScrollStickyObserver() {
       const mainScoreCard = document.getElementById('mainScoreCard');
       const stickyTopScoreBar = document.getElementById('stickyTopScoreBar');
@@ -1371,7 +1662,6 @@
       function handleScroll() {
         if (!mainScoreCard || !stickyTopScoreBar) return;
         const rect = mainScoreCard.getBoundingClientRect();
-        // If bottom of main score card passes under navbar (height 64px)
         if (rect.bottom < 64) {
           stickyTopScoreBar.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
           stickyTopScoreBar.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
@@ -1385,15 +1675,13 @@
       handleScroll();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      renderChecklist();
-      renderPastReviews();
-      recalcLiveScores();
-      updateAnalyticsKpis();
+    document.addEventListener('DOMContentLoaded', async () => {
+      initSupabaseClient();
+      await checkAuthSession();
+      await loadUserData();
       initScrollStickyObserver();
       lucide.createIcons();
 
-      // Register PWA Service Worker for Mobile App Installation
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
       }
