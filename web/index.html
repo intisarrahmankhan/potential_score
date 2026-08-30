@@ -14,12 +14,12 @@
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js CDN (Universal UMD bundle) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.0/dist/umd/supabase.min.js"></script>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
@@ -44,8 +44,8 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6">
       <div class="flex justify-between h-16 items-center gap-2">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-            <i data-lucide="target" class="w-5 h-5"></i>
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 text-lg">
+            🎯
           </div>
           <div>
             <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-indigo-300 bg-clip-text text-transparent">
@@ -58,7 +58,7 @@
           <!-- Auth Pill in Header -->
           <div id="authNavCapsule" class="flex items-center">
             <button onclick="openAuthModal('signin')" id="navLoginBtn" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow transition-all flex items-center space-x-1.5">
-              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              <span>🔒</span>
               <span>Sign In</span>
             </button>
             <div id="navUserBadge" class="hidden flex items-center space-x-2 bg-[#0B0F19] border border-indigo-900/80 px-2.5 py-1 rounded-xl">
@@ -68,15 +68,15 @@
           </div>
 
           <button onclick="switchTab('daily')" id="tabDailyBtn" class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5">
-            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            <span>✓</span>
             <span class="hidden sm:inline">Daily Review</span>
           </button>
           <button onclick="switchTab('analytics')" id="tabAnalyticsBtn" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5">
-            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>📈</span>
             <span class="hidden sm:inline">Analytics</span>
           </button>
           <button onclick="openHabitModal()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Manage Rules">
-            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+            <span class="text-sm">⚙️</span>
           </button>
         </div>
       </div>
@@ -101,7 +101,7 @@
           <div id="floatingProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-300" style="width: 0%;"></div>
         </div>
         <button onclick="saveDailyReview()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs shadow transition-colors flex items-center space-x-1">
-          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>✓</span>
           <span>Save</span>
         </button>
       </div>
@@ -161,8 +161,8 @@
       <div class="rounded-3xl bg-[#131B2E] border border-rose-900/40 overflow-hidden shadow-lg transition-all">
         <button onclick="toggleStaminaPillarsBlock()" class="w-full p-5 flex items-center justify-between hover:bg-[#1e293b]/60 transition-colors text-left">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-rose-950/70 text-rose-400 flex items-center justify-center font-black">
-              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            <div class="w-10 h-10 rounded-2xl bg-rose-950/70 text-rose-400 flex items-center justify-center font-black text-lg">
+              🛡️
             </div>
             <div>
               <h2 class="text-base font-extrabold text-white flex items-center space-x-2">
@@ -174,7 +174,7 @@
           </div>
           <div class="flex items-center space-x-2 text-rose-400 font-bold text-xs">
             <span id="staminaToggleLabel">Show Bad Habits</span>
-            <i data-lucide="chevron-down" id="staminaChevron" class="w-5 h-5 transition-transform duration-300"></i>
+            <span id="staminaChevron" class="text-xs font-bold transition-transform duration-300">▼</span>
           </div>
         </button>
 
@@ -223,8 +223,8 @@
       <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-indigo-950/60 text-indigo-400 flex items-center justify-center font-bold">
-              <i data-lucide="moon" class="w-5 h-5"></i>
+            <div class="w-10 h-10 rounded-2xl bg-indigo-950/60 text-indigo-400 flex items-center justify-center font-bold text-lg">
+              🌙
             </div>
             <div>
               <h2 class="text-base font-bold text-white">Sleep & Recovery</h2>
@@ -256,8 +256,8 @@
         <div class="space-y-3">
           <div class="flex items-center space-x-2">
             <!-- Minus Stepper Button -->
-            <button type="button" onclick="stepSleep(-0.5)" class="w-12 h-12 rounded-2xl bg-[#0B0F19] hover:bg-slate-800 border border-[#334155] text-indigo-400 font-black text-xl flex items-center justify-center transition-colors active:scale-95 shadow-sm" title="Decrease by 0.5h">
-              <i data-lucide="minus" class="w-5 h-5"></i>
+            <button type="button" onclick="stepSleep(-0.5)" class="w-12 h-12 rounded-2xl bg-[#0B0F19] hover:bg-slate-800 border border-[#334155] text-indigo-400 font-black text-2xl flex items-center justify-center transition-colors active:scale-95 shadow-sm" title="Decrease by 0.5h">
+              <span class="leading-none select-none">−</span>
             </button>
 
             <!-- Sleep Input with pointer-events-none on hours suffix -->
@@ -267,8 +267,8 @@
             </div>
 
             <!-- Plus Stepper Button -->
-            <button type="button" onclick="stepSleep(0.5)" class="w-12 h-12 rounded-2xl bg-[#0B0F19] hover:bg-slate-800 border border-[#334155] text-indigo-400 font-black text-xl flex items-center justify-center transition-colors active:scale-95 shadow-sm" title="Increase by 0.5h">
-              <i data-lucide="plus" class="w-5 h-5"></i>
+            <button type="button" onclick="stepSleep(0.5)" class="w-12 h-12 rounded-2xl bg-[#0B0F19] hover:bg-slate-800 border border-[#334155] text-indigo-400 font-black text-2xl flex items-center justify-center transition-colors active:scale-95 shadow-sm" title="Increase by 0.5h">
+              <span class="leading-none select-none">+</span>
             </button>
           </div>
 
@@ -288,8 +288,8 @@
       <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-purple-950/60 text-purple-400 flex items-center justify-center font-bold">
-              <i data-lucide="zap" class="w-5 h-5"></i>
+            <div class="w-10 h-10 rounded-2xl bg-purple-950/60 text-purple-400 flex items-center justify-center font-bold text-lg">
+              ⚡
             </div>
             <div>
               <h2 class="text-base font-bold text-white">Focus Split & Leisure Time</h2>
@@ -306,7 +306,7 @@
           <div class="p-3.5 rounded-2xl bg-[#0B0F19] border border-[#334155]/80 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
-                <i data-lucide="book-open" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span class="text-xs">📚</span>
                 <span class="text-xs font-bold text-white">Study Focus</span>
               </div>
               <span id="badgeStudy" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400">
@@ -331,7 +331,7 @@
           <div class="p-3.5 rounded-2xl bg-[#0B0F19] border border-[#334155]/80 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
-                <i data-lucide="briefcase" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span class="text-xs">💼</span>
                 <span class="text-xs font-bold text-white">Work Focus</span>
               </div>
               <span id="badgeWork" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400">
@@ -356,7 +356,7 @@
           <div class="p-3.5 rounded-2xl bg-[#0B0F19] border border-[#334155]/80 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5">
-                <i data-lucide="coffee" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span class="text-xs">☕</span>
                 <span class="text-xs font-bold text-white">Leisure / Quality Time</span>
               </div>
               <span id="badgeLeisure" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400">
@@ -382,7 +382,10 @@
       <!-- 5. Dynamic Habits Checklist -->
       <div class="rounded-3xl p-6 bg-[#131B2E] border border-[#334155]/80 space-y-4">
         <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Daily Disciplines & Health</h2>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+            <span>📋</span>
+            <span>Daily Disciplines & Health</span>
+          </h2>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="checklistContainer">
@@ -398,7 +401,7 @@
 
       <!-- 7. Save Button -->
       <button onclick="saveDailyReview()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-base shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center space-x-2">
-        <i data-lucide="check" class="w-5 h-5"></i>
+        <span>✓</span>
         <span>Save Daily Review</span>
       </button>
 
@@ -407,7 +410,7 @@
         <div class="flex items-center justify-between pb-3 border-b border-slate-800">
           <div>
             <h2 class="text-base font-extrabold text-white flex items-center space-x-2">
-              <i data-lucide="history" class="w-5 h-5 text-indigo-400"></i>
+              <span>📜</span>
               <span>Daily Review History & Streaks</span>
             </h2>
             <p class="text-xs text-slate-400">Private account history: streak days (&ge; 80%) show flame numbers; Mastery days (&gt; 90%) earn stars</p>
@@ -477,8 +480,8 @@
       <div class="rounded-3xl bg-[#131B2E] border border-[#334155]/80 overflow-hidden shadow-lg transition-all">
         <button onclick="toggleAllTimeBlock()" class="w-full p-5 flex items-center justify-between hover:bg-[#1e293b]/60 transition-colors text-left">
           <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl bg-indigo-950/80 text-indigo-400 flex items-center justify-center font-bold">
-              <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <div class="w-9 h-9 rounded-xl bg-indigo-950/80 text-indigo-400 flex items-center justify-center font-bold text-base">
+              ✨
             </div>
             <div>
               <h3 class="text-sm font-black text-white flex items-center space-x-2">
@@ -490,7 +493,7 @@
           </div>
           <div class="flex items-center space-x-2 text-indigo-400 font-bold text-xs">
             <span id="allTimeToggleLabel">Show All-Time</span>
-            <i data-lucide="chevron-down" id="allTimeChevron" class="w-5 h-5 transition-transform duration-300"></i>
+            <span id="allTimeChevron" class="text-xs font-bold transition-transform duration-300">▼</span>
           </div>
         </button>
 
@@ -533,7 +536,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#334155]/80">
           <div>
             <h2 class="text-lg font-extrabold text-white flex items-center space-x-2">
-              <i data-lucide="trending-up" class="w-5 h-5 text-indigo-400"></i>
+              <span>📈</span>
               <span id="chartMetricTitle">Performance Trajectory</span>
             </h2>
             <p class="text-xs text-slate-400">Interactive trajectory visualization from your real logged reviews</p>
@@ -560,7 +563,7 @@
         <div class="relative h-72 w-full flex items-center justify-center" id="chartWrapper">
           <canvas id="flChartCanvas"></canvas>
           <div id="noChartDataNotice" class="hidden text-center p-6 text-slate-500 text-xs">
-            <i data-lucide="bar-chart-3" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+            <span class="text-2xl block mb-2">📊</span>
             No reviews logged for this timeframe yet.<br>Save your daily review to see your performance trajectory curve!
           </div>
         </div>
@@ -583,15 +586,15 @@
     <div class="bg-[#131B2E] border border-[#334155] rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center">
-            <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <div class="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-sm">
+            🛡️
           </div>
           <div>
             <h3 class="font-black text-base text-white" id="authModalTitle">Sign In to Your Account</h3>
             <p class="text-[11px] text-slate-400">Keep your habits and reviews 100% private</p>
           </div>
         </div>
-        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
       </div>
 
       <!-- Auth Switcher Tabs -->
@@ -620,13 +623,13 @@
         </div>
 
         <button type="submit" id="authSubmitBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-black text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center space-x-1.5">
-          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>🔒</span>
           <span id="authSubmitBtnText">Sign In</span>
         </button>
       </form>
 
       <!-- Supabase Custom Keys Config Accordion -->
-      <details class="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+      <details class="text-[11px] text-slate-400 pt-2 border-t border-slate-800" id="supabaseConfigDetails">
         <summary class="cursor-pointer font-bold text-indigo-400 hover:underline">⚙️ Supabase API Configuration</summary>
         <div class="mt-2 space-y-2 p-3 rounded-xl bg-[#0B0F19] border border-slate-800">
           <div>
@@ -635,9 +638,9 @@
           </div>
           <div>
             <label class="block text-[9px] font-bold uppercase text-slate-500">Publishable / Anon Key</label>
-            <input type="password" id="cfgSupabaseKey" placeholder="sb_publishable_..." class="w-full px-2 py-1 text-[11px] rounded bg-[#131B2E] border border-slate-700 text-white font-mono">
+            <input type="password" id="cfgSupabaseKey" placeholder="Paste your sb_publishable_... key here" class="w-full px-2 py-1 text-[11px] rounded bg-[#131B2E] border border-slate-700 text-white font-mono">
           </div>
-          <button type="button" onclick="saveCustomSupabaseConfig()" class="w-full py-1 rounded bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold">Save API Keys</button>
+          <button type="button" onclick="saveCustomSupabaseConfig()" class="w-full py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold">Save API Keys</button>
         </div>
       </details>
     </div>
@@ -651,7 +654,7 @@
           <h3 class="font-extrabold text-lg text-white">Dynamic Habit Rules</h3>
           <p class="text-xs text-slate-400">Customize or add new daily disciplines</p>
         </div>
-        <button onclick="closeHabitModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeHabitModal()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
       </div>
 
       <div class="space-y-3 max-h-80 overflow-y-auto pr-1" id="modalHabitsList">
@@ -712,13 +715,16 @@
         SUPABASE_URL = url;
         SUPABASE_ANON_KEY = key;
         initSupabaseClient();
-        alert('Supabase API credentials saved! Checking session...');
+        alert('Supabase credentials saved! Connecting to cloud database...');
         checkAuthSession();
       }
     }
 
     function openAuthModal(mode = 'signin') {
       setAuthMode(mode);
+      if (!SUPABASE_ANON_KEY) {
+        document.getElementById('supabaseConfigDetails').open = true;
+      }
       document.getElementById('authModal').classList.remove('hidden');
     }
 
@@ -760,13 +766,14 @@
 
       if (!supabase) {
         alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-amber-950 text-amber-300 border border-amber-800';
-        alertBox.innerHTML = '⚠️ Please enter your Supabase Publishable Key under the ⚙️ API Configuration below to connect cloud auth!';
+        alertBox.innerHTML = '⚠️ Please paste your Supabase Publishable Key under ⚙️ Supabase API Configuration below to connect cloud auth!';
         alertBox.classList.remove('hidden');
+        document.getElementById('supabaseConfigDetails').open = true;
         return;
       }
 
       alertBox.className = 'p-3 rounded-xl text-xs font-bold bg-indigo-950 text-indigo-300 border border-indigo-800';
-      alertBox.innerText = 'Processing...';
+      alertBox.innerText = 'Connecting to database...';
       alertBox.classList.remove('hidden');
 
       try {
@@ -844,14 +851,11 @@
         loginBtn.classList.remove('hidden');
         userBadge.classList.add('hidden');
       }
-      lucide.createIcons();
     }
 
-    // Storage Keys for persistent real data
     const getStorageKeyLogs = () => currentUser ? `potential_tracker_user_${currentUser.id}_logs` : 'potential_tracker_guest_logs';
     const getStorageKeyHabits = () => currentUser ? `potential_tracker_user_${currentUser.id}_habits` : 'potential_tracker_guest_habits';
 
-    // Default Starting Disciplines Checklist
     const initialDefaultHabits = [
       { id: 'h1', title: 'Physical Workout / Exercise', isChecked: false },
       { id: 'h2', title: 'Hydration (3L+ Clean Water)', isChecked: false },
@@ -870,9 +874,7 @@
     let isAllTimeBlockOpen = false;
     let isStaminaBlockOpen = false;
 
-    // Load User Data from Supabase & LocalStorage
     async function loadUserData() {
-      // 1. Load from local cache first
       try {
         const localLogs = JSON.parse(localStorage.getItem(getStorageKeyLogs()));
         if (Array.isArray(localLogs)) userLogs = localLogs;
@@ -883,7 +885,6 @@
         else checklist = [...initialDefaultHabits];
       } catch(e) { userLogs = []; checklist = [...initialDefaultHabits]; }
 
-      // 2. If authenticated to Supabase, sync from cloud database
       if (supabase && currentUser) {
         try {
           const { data: cloudLogs } = await supabase
@@ -892,7 +893,7 @@
             .eq('user_id', currentUser.id)
             .order('log_date', { ascending: false });
 
-          if (cloudLogs && Array.isArray(cloudLogs)) {
+          if (cloudLogs && Array.isArray(cloudLogs) && cloudLogs.length > 0) {
             userLogs = cloudLogs.map(l => ({
               rawDate: l.log_date,
               date: l.log_date,
@@ -922,7 +923,6 @@
       updateAnalyticsKpis();
     }
 
-    // Date setup: Default to yesterday (Current Date - 1), max allowed is Today
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     const yesterday = new Date();
@@ -931,7 +931,7 @@
 
     const datePicker = document.getElementById('datePickerInput');
     datePicker.value = yesterdayStr;
-    datePicker.max = todayStr; // Strictly disallow tomorrow and future dates
+    datePicker.max = todayStr;
 
     function onDateChanged(val) {
       if (val > todayStr) {
@@ -989,16 +989,13 @@
     function toggleStaminaPillarsBlock() {
       isStaminaBlockOpen = !isStaminaBlockOpen;
       const content = document.getElementById('staminaExpandedContent');
-      const chevron = document.getElementById('staminaChevron');
       const label = document.getElementById('staminaToggleLabel');
 
       if (isStaminaBlockOpen) {
         content.classList.remove('hidden');
-        chevron.classList.add('rotate-180');
         label.innerText = 'Hide Bad Habits';
       } else {
         content.classList.add('hidden');
-        chevron.classList.remove('rotate-180');
         label.innerText = 'Show Bad Habits';
       }
     }
@@ -1006,16 +1003,13 @@
     function toggleAllTimeBlock() {
       isAllTimeBlockOpen = !isAllTimeBlockOpen;
       const content = document.getElementById('allTimeExpandedContent');
-      const chevron = document.getElementById('allTimeChevron');
       const label = document.getElementById('allTimeToggleLabel');
 
       if (isAllTimeBlockOpen) {
         content.classList.remove('hidden');
-        chevron.classList.add('rotate-180');
         label.innerText = 'Hide All-Time';
       } else {
         content.classList.add('hidden');
-        chevron.classList.remove('rotate-180');
         label.innerText = 'Show All-Time';
       }
     }
@@ -1050,7 +1044,6 @@
         `;
         container.appendChild(el);
       });
-      lucide.createIcons();
     }
 
     function toggleChecklistItem(index, val) {
@@ -1069,12 +1062,11 @@
       if (userLogs.length === 0) {
         container.innerHTML = `
           <div class="p-8 rounded-2xl bg-[#0B0F19] border border-dashed border-[#334155] text-center">
-            <i data-lucide="calendar-plus" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+            <span class="text-3xl block mb-2">📅</span>
             <p class="text-xs font-bold text-slate-400">No daily reviews recorded yet.</p>
-            <p class="text-[11px] text-slate-500 mt-0.5">${currentUser ? 'Your private account is ready. Submit your review above!' : 'Sign in to sync across your phone and keep your reviews 100% private.'}</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">${currentUser ? 'Your private account is active. Submit your review above!' : 'Sign in to sync your reviews to the cloud and keep them 100% private.'}</p>
           </div>
         `;
-        lucide.createIcons();
         return;
       }
 
@@ -1097,7 +1089,6 @@
               <div class="flex flex-wrap items-center gap-2">
                 <span class="font-extrabold text-sm text-white">${rev.fullDate || rev.date}</span>
                 
-                <!-- Streak Badge with Lower Font Subscript Number -->
                 ${isStreak && rev.streakCount ? `
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-950/70 text-amber-300 border border-amber-800/50">
                     <span>🔥</span>
@@ -1105,7 +1096,6 @@
                   </span>
                 ` : ''}
 
-                <!-- > 90% Achievement Mark -->
                 ${isAchievement ? `
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-yellow-300 border border-yellow-500/50 achievement-glow">
                     <span class="mr-1">⭐</span>
@@ -1125,7 +1115,6 @@
 
         container.appendChild(card);
       });
-      lucide.createIcons();
     }
 
     function loadReviewToForm(index) {
@@ -1160,25 +1149,21 @@
       const workVal = parseFloat(document.getElementById('inputWork').value) || 0;
       const workMin = parseFloat(document.getElementById('targetWorkMin').value) || 4.0;
 
-      // Leisure Time (Hours + Minutes)
       const leisureHours = parseInt(document.getElementById('inputLeisureHours').value) || 0;
       const leisureMinutes = parseInt(document.getElementById('inputLeisureMinutes').value) || 0;
       const totalLeisureHours = leisureHours + (leisureMinutes / 60.0);
-      const isLeisureOverLimit = totalLeisureHours > 3.0; // Penalty if > 3h
+      const isLeisureOverLimit = totalLeisureHours > 3.0;
 
-      // Update echo labels
       document.getElementById('sleepTargetDisplay').innerText = `${sleepMin} - ${sleepMax}`;
       document.getElementById('studyGoalEcho').innerText = `${studyMin}`;
       document.getElementById('workGoalEcho').innerText = `${workMin}`;
       document.getElementById('leisureTotalEcho').innerText = `${leisureHours}h ${leisureMinutes}m`;
 
-      // Smart Validation Logic
       const isSleepPassed = (sleepVal >= sleepMin && sleepVal <= sleepMax);
       const isStudyPassed = (studyVal >= studyMin);
       const isWorkPassed = (workVal >= workMin);
       const isLeisurePassed = !isLeisureOverLimit;
 
-      // Header Stamina Pill update
       const staminaHeaderBadge = document.getElementById('staminaHeaderStatusBadge');
       if (isNMPassed && isNPPassed) {
         staminaHeaderBadge.innerText = 'Clean Stamina Confirmed ✓';
@@ -1188,7 +1173,6 @@
         staminaHeaderBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-950 text-rose-300 border border-rose-800/60';
       }
 
-      // NM & NP Badges
       const badgeNM = document.getElementById('badgeNM');
       if (isNMPassed) {
         badgeNM.innerText = 'Clean ✓';
@@ -1207,7 +1191,6 @@
         badgeNP.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800 whitespace-nowrap';
       }
 
-      // Sleep badge
       const sleepBadge = document.getElementById('sleepBadge');
       if (isSleepPassed) {
         sleepBadge.innerText = `Optimal (${sleepVal} hrs)`;
@@ -1217,14 +1200,12 @@
         sleepBadge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-950/80 text-amber-400 border border-amber-800/60';
       }
 
-      // Focus badges
       document.getElementById('badgeStudy').innerText = isStudyPassed ? 'Pass ✓' : 'Below Goal';
       document.getElementById('badgeStudy').className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${isStudyPassed ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}`;
 
       document.getElementById('badgeWork').innerText = isWorkPassed ? 'Pass ✓' : 'Below Goal';
       document.getElementById('badgeWork').className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${isWorkPassed ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}`;
 
-      // Leisure badge
       const badgeLeisure = document.getElementById('badgeLeisure');
       if (isLeisurePassed) {
         badgeLeisure.innerText = 'Safe Rest ✓';
@@ -1237,17 +1218,15 @@
       const totalFocus = studyVal + workVal;
       document.getElementById('totalFocusBadge').innerText = `Total Focus: ${totalFocus.toFixed(1)} hrs`;
 
-      // LIVE SCORING ENGINE WITH PENALTIES
       const baseHabitsCount = 3 + checklist.length;
       let basePassedCount = (isSleepPassed ? 1 : 0) + (isStudyPassed ? 1 : 0) + (isWorkPassed ? 1 : 0);
       checklist.forEach(item => { if (item.isChecked) basePassedCount++; });
 
-      const totalCriteriaCount = 2 + baseHabitsCount; // NM + NP + Base Items
+      const totalCriteriaCount = 2 + baseHabitsCount;
       let passedCriteriaCount = (isNMPassed ? 1 : 0) + (isNPPassed ? 1 : 0) + basePassedCount;
 
       let rawScore = (basePassedCount / baseHabitsCount) * 100.0;
       
-      // Penalty deductions
       if (!isNMPassed) rawScore -= 25.0;
       if (!isNPPassed) rawScore -= 15.0;
       if (!isSleepPassed) rawScore -= 10.0;
@@ -1266,7 +1245,6 @@
       document.getElementById('progressBarLabel').innerText = `${passedCriteriaCount} of ${totalCriteriaCount}`;
       document.getElementById('liveProgressBar').style.width = `${finalPct}%`;
 
-      // Update feedback
       const penaltyText = document.getElementById('penaltyBreakdownText');
       penaltyText.innerHTML = `
         NM (Bad Habit): <span class="${isNMPassed ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}">${isNMPassed ? 'Clean ✓' : 'Failed (-25%)'}</span> • 
@@ -1283,7 +1261,6 @@
         streakBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-950/80 text-amber-400 border border-amber-800/60';
       }
 
-      // Update Sticky Floating Bar elements
       document.getElementById('floatingScorePct').innerText = `${finalPct}%`;
       document.getElementById('floatingScoreFraction').innerText = `(${passedCriteriaCount}/${totalCriteriaCount})`;
       document.getElementById('floatingProgressBar').style.width = `${finalPct}%`;
@@ -1301,7 +1278,6 @@
       }
     }
 
-    // Dynamic Real-Time Analytics Calculations from User Logs
     function updateAnalyticsKpis() {
       if (userLogs.length === 0) {
         document.getElementById('statCurrentStreak').innerText = '0';
@@ -1321,7 +1297,6 @@
         return;
       }
 
-      // Calculate Current & Longest Streaks
       let currentStreak = 0;
       let longestStreak = 0;
       let tempStreak = 0;
@@ -1402,24 +1377,29 @@
         document.getElementById('tabDailyBtn').className = 'px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-all flex items-center space-x-1.5';
         document.getElementById('tabAnalyticsBtn').className = 'px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all flex items-center space-x-1.5';
         updateAnalyticsKpis();
-        renderFlChart();
+        setTimeout(() => renderFlChart(), 50);
       }
     }
 
     function renderFlChart() {
-      const ctx = document.getElementById('flChartCanvas').getContext('2d');
+      const canvas = document.getElementById('flChartCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
       const noDataNotice = document.getElementById('noChartDataNotice');
 
-      if (chartInstance) chartInstance.destroy();
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
 
       if (userLogs.length === 0) {
-        document.getElementById('flChartCanvas').classList.add('hidden');
+        canvas.classList.add('hidden');
         noDataNotice.classList.remove('hidden');
         document.getElementById('trajectoryIndicator').innerText = 'No Data';
         return;
       }
 
-      document.getElementById('flChartCanvas').classList.remove('hidden');
+      canvas.classList.remove('hidden');
       noDataNotice.classList.add('hidden');
 
       const cutoffDate = new Date();
@@ -1462,45 +1442,47 @@
         document.getElementById('trajectoryIndicator').innerText = 'Active Tracking';
       }
 
-      chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Recorded Value',
-              data: data,
-              borderColor: '#6366f1',
-              backgroundColor: 'rgba(99, 102, 241, 0.15)',
-              borderWidth: 3,
-              tension: 0.3,
-              fill: true,
-              pointRadius: 4,
-              pointBackgroundColor: '#818cf8',
-            },
-            {
-              label: 'Target Benchmark',
-              data: targetLine,
-              borderColor: '#10b981',
-              borderDash: [6, 4],
-              borderWidth: 1.5,
-              pointRadius: 0,
-              fill: false,
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
+      if (typeof Chart !== 'undefined') {
+        chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Recorded Value',
+                data: data,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#818cf8',
+              },
+              {
+                label: 'Target Benchmark',
+                data: targetLine,
+                borderColor: '#10b981',
+                borderDash: [6, 4],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+              }
+            ]
           },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } }
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+              y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } }
+            }
           }
-        }
-      });
+        });
+      }
     }
 
     function updateChartMetric(val) {
@@ -1613,7 +1595,7 @@
       // Cloud Sync to Supabase PostgreSQL
       if (supabase && currentUser) {
         try {
-          await supabase.from('daily_logs').upsert({
+          const { error } = await supabase.from('daily_logs').upsert({
             user_id: currentUser.id,
             log_date: dateVal,
             score_fraction: fraction,
@@ -1626,12 +1608,19 @@
             reflection_notes: notes,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id,log_date' });
+
+          if (error) {
+            console.warn('Supabase save error:', error);
+          } else {
+            console.log('Successfully synced review to Supabase PostgreSQL!');
+          }
         } catch (err) {
-          console.warn('Supabase cloud upsert:', err);
+          console.warn('Supabase cloud upsert exception:', err);
         }
       }
 
-      alert(`Review saved for ${fullDateStr}! Daily Potential Score: ${pct}% ${pct >= 90 ? '⭐ Achievement Unlocked!' : (pct >= 80 ? '🔥 Streak Qualified!' : '')}`);
+      const cloudStatus = (supabase && currentUser) ? '☁️ Synced to Supabase Cloud' : '💾 Saved Locally (Sign In to sync to cloud)';
+      alert(`Review saved for ${fullDateStr}!\n\nScore: ${pct}% ${pct >= 90 ? '⭐ Achievement Unlocked!' : (pct >= 80 ? '🔥 Streak Qualified!' : '')}\n${cloudStatus}`);
     }
 
     function resetDefaultHabits() {
@@ -1680,7 +1669,6 @@
       await checkAuthSession();
       await loadUserData();
       initScrollStickyObserver();
-      lucide.createIcons();
 
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
